@@ -51,53 +51,74 @@
   <div id="log"></div>
 
   <script>
-    // Config: ONLY public values live here now. No secret. No broker creds.
+    // Public values only. No secret, no broker creds.
     const SUPABASE_URL  = "https://nwyrnezyzelsfvxascgf.supabase.co";
-    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eXJuZXp5emVsc2Z2eGFzY2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDc0MzksImV4cCI6MjA5Nzc4MzQzOX0.9qxqrbaaeAWwtpVGDO5w4clmfbG_QWh63dMWlQuD2FE";   // public anon key (safe in client)
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eXJuZXp5emVsc2Z2eGFzY2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDc0MzksImV4cCI6MjA5Nzc4MzQzOX0.9qxqrbaaeAWwtpVGDO5w4clmfbG_QWh63dMWlQuD2FE";
     const GATE_ID       = "demo-0001";
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    const log = (m) => { const e=document.getElementById('log');
-      e.innerHTML = `<div>${new Date().toLocaleTimeString()} — ${m}</div>` + e.innerHTML; };
+    const logEl = document.getElementById('log');
+    const log = (m) => { logEl.innerHTML = `<div>${new Date().toLocaleTimeString()} — ${m}</div>` + logEl.innerHTML; };
 
-    async function refresh() {
-      const { data:{ session } } = await sb.auth.getSession();
-      const inApp = !!session;
-      document.getElementById('login').classList.toggle('hidden', inApp);
-      document.getElementById('control').classList.toggle('hidden', !inApp);
-      document.getElementById('status-bar').textContent = inApp ? '🟢 Signed in' : 'Please sign in';
-      if (inApp) loadStatus();
+    function showControl() {
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('control').classList.remove('hidden');
+      document.getElementById('status-bar').textContent = '\u{1F7E2} Signed in';
+    }
+    function showLogin() {
+      document.getElementById('control').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+      document.getElementById('status-bar').textContent = 'Please sign in';
     }
 
     async function loadStatus() {
-      const { data, error } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
-      const el = document.getElementById('gate-status');
-      if (error || !data) { el.textContent = 'Gate: status unavailable'; return; }
-      const s = data.service_status;
-      el.textContent = s === 'suspended' ? 'Service suspended' : 'Gate: active';
-      el.style.color = s === 'suspended' ? '#ef4444' : '#22c55e';
-      document.getElementById('btn-open').disabled = (s === 'suspended');
+      try {
+        const { data, error } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
+        const el = document.getElementById('gate-status');
+        if (error || !data) { el.textContent = 'Gate: status unavailable'; return; }
+        const s = data.service_status;
+        el.textContent = s === 'suspended' ? 'Service suspended' : 'Gate: active';
+        el.style.color = s === 'suspended' ? '#ef4444' : '#22c55e';
+        document.getElementById('btn-open').disabled = (s === 'suspended');
+      } catch (e) { /* status is non-fatal, ignore */ }
     }
 
     async function signIn() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('pass').value;
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) { log('Sign-in failed: ' + error.message); return; }
-      refresh();
+      if (!email) { log('Enter your email first'); return; }
+      log('Signing in...');
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { log('Sign-in failed: ' + error.message); return; }
+        log('Signed in - opening controls');
+        showControl();          // direct switch on success, no session re-lookup
+        loadStatus();
+      } catch (e) { log('Sign-in error: ' + (e.message || e)); }
     }
-    async function signOut() { await sb.auth.signOut(); refresh(); }
+
+    async function signOut() {
+      try { await sb.auth.signOut(); } catch (e) {}
+      showLogin();
+    }
 
     async function openGate() {
-      log('Opening…');
-      const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID } });
-      if (error) { log('Open failed: ' + (error.message || error)); return; }
-      if (data && data.error) { log('Open refused: ' + data.error); return; }
-      log('Open sent ✓');
+      log('Opening...');
+      try {
+        const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID } });
+        if (error) { log('Open failed: ' + (error.message || error)); return; }
+        if (data && data.error) { log('Open refused: ' + data.error); return; }
+        log('Open sent OK');
+      } catch (e) { log('Open error: ' + (e.message || e)); }
     }
 
-    sb.auth.onAuthStateChange(() => refresh());
-    refresh();
+    // On load: restore an existing session if there is one, otherwise show login.
+    (async () => {
+      try {
+        const { data:{ session } } = await sb.auth.getSession();
+        if (session) { showControl(); loadStatus(); } else { showLogin(); }
+      } catch (e) { showLogin(); }
+    })();
   </script>
 </body>
 </html>
