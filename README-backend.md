@@ -31,9 +31,9 @@ setup.sql                schema: plan/status/stripe cols + locked secret table
 3. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
    ```
    supabase secrets set \
-     HIVEMQ_HOST=71efb01a3c524802bcb0914de069ddf0.s1.eu.hivemq.cloud \
-     HIVEMQ_USER=RJLCOMMERCIAL \
-     HIVEMQ_PASS='Alebakis1!' \
+     HIVEMQ_HOST=<your-hivemq-host> \
+     HIVEMQ_USER=<your-hivemq-user> \
+     HIVEMQ_PASS='<your-hivemq-pass>' \
      STRIPE_SECRET_KEY=sk_live_xxx \
      STRIPE_WEBHOOK_SECRET=whsec_xxx
    ```

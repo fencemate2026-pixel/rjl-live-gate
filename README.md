@@ -4,5 +4,6 @@ firmware/rjl_gate_anywhere/   -> open rjl_gate_anywhere.ino in Arduino IDE
 web/                          -> plan-select.html, gate.html, logo (host on Vercel/Netlify)
 backend/                      -> run the Supabase CLI from HERE (see backend/README-backend.md)
 
-Per-unit at the bench: set GATE_ID + HMAC_SECRET in the .ino, add the matching
-row in gates + gate_secrets, generate that client's gate.html config, flash.
+Per-unit at the bench: copy `secrets.h.example` → `secrets.h`, fill GATE_ID +
+HMAC_SECRET (+ MQTT/WiFi), add the matching row in gates + gate_secrets, flash.
+Never commit `secrets.h` — it is gitignored.
