@@ -30,16 +30,18 @@
 #include <bearssl/bearssl.h>
 #include <time.h>
 
-// ==================  PER-UNIT IDENTITY — set at the bench  ==================
-const char* GATE_ID     = "demo-0001";
-const char* HMAC_SECRET = "952637466aae5d1e751098b9a9c57b80";   // unique per unit
-const char* LOCAL_PIN   = "1234";
-// ===========================================================================
+// Per-unit secrets live in secrets.h (copy from secrets.h.example at the bench).
+// secrets.h is gitignored — never commit real MQTT/HMAC/WiFi credentials.
+#include "secrets.h"
+
+const char* GATE_ID     = SECRET_GATE_ID;
+const char* HMAC_SECRET = SECRET_HMAC_SECRET;
+const char* LOCAL_PIN   = SECRET_LOCAL_PIN;
 
 const char* MQTT_HOST = "71efb01a3c524802bcb0914de069ddf0.s1.eu.hivemq.cloud";
 const int   MQTT_PORT = 8883;
-const char* MQTT_USER = "RJLCOMMERCIAL";
-const char* MQTT_PASS = "Alebakis1!";
+const char* MQTT_USER = SECRET_MQTT_USER;
+const char* MQTT_PASS = SECRET_MQTT_PASS;
 const char* SETUP_AP_PASS = "rjlsetup";
 
 const int64_t FRESH_MS = 30000;

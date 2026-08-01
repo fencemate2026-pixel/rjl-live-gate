@@ -22,10 +22,10 @@ create table if not exists public.gate_secrets (
 alter table public.gate_secrets enable row level security;
 -- (intentionally no policies)
 
--- 3. Seed the demo unit's secret.
-insert into public.gate_secrets (gate_id, hmac_secret)
-values ('demo-0001', '952637466aae5d1e751098b9a9c57b80')
-on conflict (gate_id) do update set hmac_secret = excluded.hmac_secret;
+-- 3. Seed each unit's secret at flash time. Do NOT commit real HMAC values.
+-- insert into public.gate_secrets (gate_id, hmac_secret)
+-- values ('your-gate-id', 'your_unique_hmac_secret')
+-- on conflict (gate_id) do update set hmac_secret = excluded.hmac_secret;
 
 -- 4. Let the browser READ its gates' status (never the secret).
 alter table public.gates enable row level security;
