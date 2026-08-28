@@ -194,8 +194,19 @@ void handleOpen(){
   } else { if(++badPins>=5){ lockUntil=millis()+60000UL; badPins=0; }
     web.send(200,"text/plain","wrong PIN"); }
 }
-void handleForget(){ web.send(200,"text/plain","forgetting WiFi - reopening setup");
-  delay(400); WiFiManager wm; wm.resetSettings(); ESP.restart(); }
+void handleForget(){
+  // Same PIN gate as /open — otherwise any LAN client can wipe WiFi and force
+  // the captive portal, taking the gate offline until physical re-provision.
+  if(millis()<lockUntil){ web.send(429,"text/plain","locked - wait"); return; }
+  if(web.arg("pin")!=LOCAL_PIN){
+    if(++badPins>=5){ lockUntil=millis()+60000UL; badPins=0; }
+    web.send(200,"text/plain","wrong PIN");
+    return;
+  }
+  badPins=0;
+  web.send(200,"text/plain","forgetting WiFi - reopening setup");
+  delay(400); WiFiManager wm; wm.resetSettings(); ESP.restart();
+}
 
 void setup(){
   Serial.begin(115200); delay(200);
