@@ -312,9 +312,6 @@
     function stamp(){ return new Date().toISOString(); }
     function saveDB(){ localStorage.setItem('rjl.truckDB', JSON.stringify(state.truckDB)); localStorage.setItem('rjl.personDB', JSON.stringify(state.personDB)); }
     function sanitizeText(v){ return (v || '').replace(/[\x00-\x1F\x7F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(); }
-    function sanitizeHtmlText(v){
-      return sanitizeText(v).replace(/[&<>"']/g, (ch) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
-    }
     function normalizePlate(v){ return sanitizeText(v).replace(/[^A-Za-z0-9-]/g, '').toUpperCase(); }
 
     function canOperate(){ return !state.auth.readOnly && state.auth.signedIn && !state.auth.suspended; }
@@ -435,8 +432,8 @@
     function attachCurrentToRecords(decisionType){
       const plate = normalizePlate(document.getElementById('plateInput').value);
       const driver = sanitizeText(document.getElementById('driverInput').value) || 'unknown-driver';
-      const userInfo = sanitizeHtmlText(document.getElementById('userInfoInput').value) || 'unspecified';
-      const operatorOpinion = sanitizeHtmlText(document.getElementById('opinionInput').value) || '';
+      const userInfo = sanitizeText(document.getElementById('userInfoInput').value) || 'unspecified';
+      const operatorOpinion = sanitizeText(document.getElementById('opinionInput').value) || '';
       if (!plate) return;
       const checklist = Array.from(document.querySelectorAll('#checklist .checklist-item')).map((row, idx) => ({ item: checklistOrder[idx], complete: row.querySelector('input[type="checkbox"]').checked }));
       const tempValue = Number(document.getElementById('tempInput').value || 0);
