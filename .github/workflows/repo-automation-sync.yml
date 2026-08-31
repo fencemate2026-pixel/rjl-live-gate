@@ -61,7 +61,15 @@ jobs:
           if missing:
               raise SystemExit(f"linked-project.json is missing keys: {', '.join(missing)}")
 
-          required_hosting = {"provider", "teamSlug", "projectSlug", "projectUrl", "productionEntryPoints", "backendProjectRef"}
+          required_hosting = {
+              "provider",
+              "teamSlug",
+              "projectSlug",
+              "projectUrl",
+              "productionEntryPoints",
+              "supabaseClientEntryPoints",
+              "backendProjectRef",
+          }
           missing_hosting = sorted(required_hosting.difference(hosting))
           if missing_hosting:
               raise SystemExit(f"hosting-target.json is missing keys: {', '.join(missing_hosting)}")
@@ -69,11 +77,14 @@ jobs:
               raise SystemExit("hosting-target.json must declare provider=vercel")
           if linked["ref"] != hosting["backendProjectRef"]:
               raise SystemExit("hosting-target.json backendProjectRef must match linked-project.json ref")
+          for html_name in hosting["productionEntryPoints"]:
+              if not Path(html_name).is_file():
+                  raise SystemExit(f"hosting-target.json lists a missing entry point: {html_name}")
 
           expected_script = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
           expected_url = f"https://{linked['ref']}.supabase.co"
 
-          for html_name in ("index.html", "gate.html"):
+          for html_name in hosting["supabaseClientEntryPoints"]:
               html = Path(html_name).read_text()
               if expected_script not in html:
                   raise SystemExit(f"{html_name} is missing the expected Supabase client script")

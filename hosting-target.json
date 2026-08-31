@@ -8,5 +8,9 @@
     "gate.html",
     "plan-select.html"
   ],
+  "supabaseClientEntryPoints": [
+    "index.html",
+    "gate.html"
+  ],
   "backendProjectRef": "aevsfrxqyvtuycufffxk"
 }
