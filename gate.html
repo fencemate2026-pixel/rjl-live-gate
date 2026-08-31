@@ -49,9 +49,9 @@
   <script>
     // ── Config: ONLY public values live here now. No secret. No broker creds. ──
     const SUPABASE_URL  = "https://aevsfrxqyvtuycufffxk.supabase.co";
-    const SUPABASE_ANON = "sb_publishable_AbAkYKfybY0RLf84EhskqQ_P9Awnr1n";   // public publishable key
+    const SUPABASE_ANON = "sb_publishable_AbAkYKfybY0RLf84EhskqQ_P9Awnr1n";   // public publishable key (safe in client)
     const GATE_ID       = "demo-0001";
-    // ───────────────────────────────────────────────────────────────
+    // ───────────────────────────────────────────────────────────────────────────
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     const log = (m) => { const e=document.getElementById('log');
@@ -87,6 +87,7 @@
 
     async function openGate() {
       log('Opening…');
+      // The function signs + publishes server-side. The browser holds no secret.
       const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID } });
       if (error) { log('Open failed: ' + (error.message || error)); return; }
       if (data && data.error) { log('Open refused: ' + data.error); return; }

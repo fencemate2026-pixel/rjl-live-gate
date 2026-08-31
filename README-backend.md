@@ -5,10 +5,11 @@ client** and makes non-payment suspension automatic.
 
 ```
 supabase/functions/
-  _shared/util.ts        sign + MQTT publish + service-role helpers
-  stripe-webhook/        Stripe events -> suspend / resume the gate
-  gate-open/             authenticated open (signs + publishes server-side)
-setup.sql                schema: plan/status/stripe cols + locked secret table
+  _shared/util.ts           sign + MQTT publish + service-role helpers
+  gate-open/index.ts        authenticated open (signs + publishes server-side)
+  stripe-webhook/index.ts   Stripe events -> suspend / resume the gate
+setup.sql                   blank-project bootstrap for gates, gate_users, gate_secrets
+supabase/migrations/        audit trail + webhook idempotency SQL
 ```
 
 ## What it does
@@ -25,19 +26,31 @@ setup.sql                schema: plan/status/stripe cols + locked secret table
    ```
    npm i -g supabase
    supabase login
-   supabase link --project-ref nwyrnezyzelsfvxascgf
+   supabase link --project-ref aevsfrxqyvtuycufffxk
    ```
 2. Run **setup.sql** in the Supabase SQL Editor.
-3. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
+3. Create the first portal user in **Authentication → Users** and confirm the email if required.
+4. Link that user to the demo gate:
+   ```sql
+   insert into public.gate_users (gate_id, user_id)
+   select 'demo-0001', id
+   from auth.users
+   where email = 'YOUR_EMAIL_HERE'
+   on conflict do nothing;
+   ```
+5. Apply the migration in `supabase/migrations/20260831051500_gate_action_audit.sql`.
+6. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
    ```
    supabase secrets set \
-     HIVEMQ_HOST=71efb01a3c524802bcb0914de069ddf0.s1.eu.hivemq.cloud \
-     HIVEMQ_USER=RJLCOMMERCIAL \
-     HIVEMQ_PASS='Alebakis1!' \
+     ALLOWED_ORIGINS=https://your-gate-app.example.com,https://your-preview-app.example.com \
+     HIVEMQ_HOST=your-cluster.hivemq.cloud \
+     HIVEMQ_USER=your-username \
+     HIVEMQ_PASS='your-password' \
      STRIPE_SECRET_KEY=sk_live_xxx \
      STRIPE_WEBHOOK_SECRET=whsec_xxx
    ```
-4. Deploy:
+   `ALLOWED_ORIGINS` should list the exact front-end origins allowed to call `gate-open`.
+7. Deploy:
    ```
    supabase functions deploy stripe-webhook --no-verify-jwt
    supabase functions deploy gate-open
@@ -49,8 +62,8 @@ setup.sql                schema: plan/status/stripe cols + locked secret table
 1. Product/Price: **Maintenance $59/month** recurring. Standard $710 is a separate
    one-off price / payment link.
 2. When you start a client's subscription, write its id to that gate:
-   `update gates set plan='maintenance', stripe_subscription_id='sub_xxx' where gate_id='...';`
-3. Webhook endpoint → `https://nwyrnezyzelsfvxascgf.supabase.co/functions/v1/stripe-webhook`
+   `update gates set plan='maintenance', stripe_subscription_id='sub_xxx' where id='...';`
+3. Webhook endpoint → `https://aevsfrxqyvtuycufffxk.supabase.co/functions/v1/stripe-webhook`
    Events: `invoice.paid`, `invoice.payment_succeeded`, `customer.subscription.updated`,
    `customer.subscription.deleted`. Copy its signing secret into STRIPE_WEBHOOK_SECRET.
 4. **Grace period = Stripe's job.** Settings → Billing → *Manage failed payments*:
@@ -59,18 +72,28 @@ setup.sql                schema: plan/status/stripe cols + locked secret table
    grace window and the tech stay in sync automatically.
 
 ## Front-end
-Use the new `gate.html` (one folder up). Fill in `SUPABASE_ANON` (public anon key)
-and create the client's user in Supabase Auth + a row in `gate_users` linking that
-user to the gate. The page holds no secret and no broker password.
+`gate.html` and `index.html` now point at project `aevsfrxqyvtuycufffxk` with the
+publishable key already filled in. Login will still fail on a fresh project until
+you run `setup.sql`, create a Supabase Auth user, and insert the matching `gate_users`
+link for that user. The page holds no secret and no broker password.
 
 ## Test
 ```
-stripe listen --forward-to https://nwyrnezyzelsfvxascgf.supabase.co/functions/v1/stripe-webhook
+stripe listen --forward-to https://aevsfrxqyvtuycufffxk.supabase.co/functions/v1/stripe-webhook
 stripe trigger invoice.payment_failed     # then watch:
 supabase functions logs stripe-webhook
 ```
 Suspend should publish a retained `hold:on`; the unit's serial prints
 `[hold] SUSPENDED — gate held open`. Resume with `stripe trigger invoice.paid`.
+
+Gate open attempts and webhook-driven hold/state changes are written to `gate_action_audit`.
+Webhook idempotency and raw event tracking are written to `stripe_webhook_events`.
+
+## Local validation
+```
+deno check supabase/functions/gate-open/index.ts
+deno check supabase/functions/stripe-webhook/index.ts
+```
 
 ## Known test points (I can't verify these from here)
 - **MQTT-from-Deno**: `npm:mqtt` over WSS should work in the edge runtime; if a

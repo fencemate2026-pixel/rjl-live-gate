@@ -1,0 +1,93 @@
+name: Repo automation sync
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: repo-automation-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate repository files stay in sync
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            README.md
+            README-backend.md
+            gate.html
+            hosting-target.json
+            index.html
+            index.ts
+            linked-project.json
+            plan-select.html
+            phase1-proposal.html
+            rjl_gate_anywhere.ino
+            secrets.h.example
+            setup.sql
+            supabase/config.toml
+            supabase/functions/_shared/util.ts
+            supabase/functions/gate-open/index.ts
+            supabase/functions/stripe-webhook/index.ts
+            supabase/migrations/20260831051500_gate_action_audit.sql
+            util.ts
+            vercel.json
+          )
+
+          for file in "${required_files[@]}"; do
+            test -f "$file" || { echo "Missing required file: $file"; exit 1; }
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          linked = json.loads(Path("linked-project.json").read_text())
+          hosting = json.loads(Path("hosting-target.json").read_text())
+          required = {"ref", "name", "organization_id", "organization_slug"}
+          missing = sorted(required.difference(linked))
+          if missing:
+              raise SystemExit(f"linked-project.json is missing keys: {', '.join(missing)}")
+
+          required_hosting = {
+              "provider",
+              "teamSlug",
+              "projectSlug",
+              "projectUrl",
+              "productionEntryPoints",
+              "supabaseClientEntryPoints",
+              "backendProjectRef",
+          }
+          missing_hosting = sorted(required_hosting.difference(hosting))
+          if missing_hosting:
+              raise SystemExit(f"hosting-target.json is missing keys: {', '.join(missing_hosting)}")
+          if hosting["provider"] != "vercel":
+              raise SystemExit("hosting-target.json must declare provider=vercel")
+          if linked["ref"] != hosting["backendProjectRef"]:
+              raise SystemExit("hosting-target.json backendProjectRef must match linked-project.json ref")
+          for html_name in hosting["productionEntryPoints"]:
+              if not Path(html_name).is_file():
+                  raise SystemExit(f"hosting-target.json lists a missing entry point: {html_name}")
+
+          expected_script = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+          expected_url = f"https://{linked['ref']}.supabase.co"
+
+          for html_name in hosting["supabaseClientEntryPoints"]:
+              html = Path(html_name).read_text()
+              if expected_script not in html:
+                  raise SystemExit(f"{html_name} is missing the expected Supabase client script")
+              if expected_url not in html:
+                  raise SystemExit(f"{html_name} is missing the expected Supabase project URL: {expected_url}")
+          PY

@@ -2,7 +2,7 @@
 
 Frontend now uses:
 - URL: https://aevsfrxqyvtuycufffxk.supabase.co
-- Publishable key: sb_publishable_AbAkYKfybY0RLf84EhskqQ_P9Awnr1n
+- Publishable key: <YOUR_SUPABASE_PUBLISHABLE_KEY>
 
 ## You still must do this in the Supabase dashboard
 
@@ -25,3 +25,4 @@ supabase functions deploy gate-open
 ```
 
 Do not put the service_role key or HiveMQ password in the frontend.
+Copy the publishable key from the Supabase project dashboard when configuring the live frontend.
