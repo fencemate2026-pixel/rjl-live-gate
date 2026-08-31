@@ -32,9 +32,9 @@ setup.sql                   schema: plan/status/stripe cols + locked secret tabl
    ```
    supabase secrets set \
      ALLOWED_ORIGINS=https://your-gate-app.example.com,https://your-preview-app.example.com \
-     HIVEMQ_HOST=71efb01a3c524802bcb0914de069ddf0.s1.eu.hivemq.cloud \
-     HIVEMQ_USER=RJLCOMMERCIAL \
-     HIVEMQ_PASS='Alebakis1!' \
+     HIVEMQ_HOST=your-cluster.hivemq.cloud \
+     HIVEMQ_USER=your-username \
+     HIVEMQ_PASS='your-password' \
      STRIPE_SECRET_KEY=sk_live_xxx \
      STRIPE_WEBHOOK_SECRET=whsec_xxx
    ```
