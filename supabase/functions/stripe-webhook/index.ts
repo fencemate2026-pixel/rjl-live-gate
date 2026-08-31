@@ -37,7 +37,9 @@ async function verifyStripeSignature(body: string, signatureHeader: string): Pro
 
   const signedPayload = `${timestamp}.${body}`;
   const expected = await hmacHex(secret, signedPayload);
-  return signatures.some((sig) => timingSafeEqual(sig, expected));
+  let matched = false;
+  for (const sig of signatures) matched = timingSafeEqual(sig, expected) || matched;
+  return matched;
 }
 
 function deriveAction(eventType: string, object: EventObject):
@@ -97,7 +99,10 @@ Deno.serve(async (req) => {
     .select("id, service_status, plan")
     .eq("stripe_subscription_id", action.subscriptionId)
     .maybeSingle();
-  if (gateLookupError) return json({ error: "gate lookup failed", detail: gateLookupError.message }, 500, origin);
+  if (gateLookupError) {
+    console.error("gate lookup failed", gateLookupError);
+    return json({ error: "gate lookup failed" }, 500, origin);
+  }
   if (!gate) return json({ ok: true, ignored: true, reason: "subscription not linked to gate" }, 200, origin);
   if (gate.plan !== "maintenance") {
     return json({ ok: true, ignored: true, reason: "gate is not on maintenance plan" }, 200, origin);
@@ -110,7 +115,8 @@ Deno.serve(async (req) => {
     await publishHold(gate.id, secret, action.hold);
     await updateGateServiceStatus(db, gate.id, action.serviceStatus);
   } catch (e) {
-    return json({ error: "failed to sync gate state", detail: (e as Error).message }, 502, origin);
+    console.error("failed to sync gate state", e);
+    return json({ error: "failed to sync gate state" }, 502, origin);
   }
 
   return json({

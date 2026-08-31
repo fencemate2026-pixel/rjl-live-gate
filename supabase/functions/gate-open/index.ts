@@ -28,14 +28,20 @@ Deno.serve(async (req) => {
     .eq("gate_id", gateId)
     .eq("user_id", user.id)
     .maybeSingle();
-  if (linkError) return json({ error: "authorization lookup failed", detail: linkError.message }, 500, origin);
+  if (linkError) {
+    console.error("authorization lookup failed", linkError);
+    return json({ error: "authorization lookup failed" }, 500, origin);
+  }
   if (!link) return json({ error: "forbidden" }, 403, origin);
 
   const { data: gate, error: gateError } = await db.from("gates")
     .select("service_status")
     .eq("id", gateId)
     .maybeSingle();
-  if (gateError) return json({ error: "gate lookup failed", detail: gateError.message }, 500, origin);
+  if (gateError) {
+    console.error("gate lookup failed", gateError);
+    return json({ error: "gate lookup failed" }, 500, origin);
+  }
   if (!gate) return json({ error: "gate not found" }, 404, origin);
   if (gate.service_status === "suspended") return json({ error: "service suspended" }, 402, origin);
 
@@ -45,7 +51,8 @@ Deno.serve(async (req) => {
   try {
     await publishOpen(gateId, secret);
   } catch (e) {
-    return json({ error: "publish failed", detail: (e as Error).message }, 502, origin);
+    console.error("publish failed", e);
+    return json({ error: "publish failed" }, 502, origin);
   }
 
   return json({ ok: true, gate: gateId }, 200, origin);
