@@ -2,7 +2,7 @@
 
 Root files:
 - `rjl_gate_anywhere.ino` -> open in Arduino IDE for the firmware
-- `plan-select.html`, `gate.html`, `index.html`, `rjl-logo-transparent.png` -> host on Vercel/Netlify
+- `plan-select.html`, `gate.html`, `index.html`, `rjl-logo-transparent.png` -> host on Vercel
 - `vercel.json`, `hosting-target.json` -> repo-side Vercel hosting config and project linkage kept with the codebase
 - `index.ts`, `util.ts`, `setup.sql`, `README-backend.md` -> backend/Supabase deployment assets
 - `supabase/functions/` -> deployable Supabase Edge Functions for `gate-open` and `stripe-webhook`
