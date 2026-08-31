@@ -36,6 +36,9 @@ jobs:
             rjl_gate_anywhere.ino
             secrets.h.example
             setup.sql
+            supabase/functions/_shared/util.ts
+            supabase/functions/gate-open/index.ts
+            supabase/functions/stripe-webhook/index.ts
             util.ts
           )
 

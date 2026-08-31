@@ -5,10 +5,10 @@ client** and makes non-payment suspension automatic.
 
 ```
 supabase/functions/
-  _shared/util.ts        sign + MQTT publish + service-role helpers
-  stripe-webhook/        Stripe events -> suspend / resume the gate
-  gate-open/             authenticated open (signs + publishes server-side)
-setup.sql                schema: plan/status/stripe cols + locked secret table
+  _shared/util.ts           sign + MQTT publish + service-role helpers
+  gate-open/index.ts        authenticated open (signs + publishes server-side)
+  stripe-webhook/index.ts   Stripe events -> suspend / resume the gate
+setup.sql                   schema: plan/status/stripe cols + locked secret table
 ```
 
 ## What it does
@@ -71,6 +71,12 @@ supabase functions logs stripe-webhook
 ```
 Suspend should publish a retained `hold:on`; the unit's serial prints
 `[hold] SUSPENDED — gate held open`. Resume with `stripe trigger invoice.paid`.
+
+## Local validation
+```
+deno check supabase/functions/gate-open/index.ts
+deno check supabase/functions/stripe-webhook/index.ts
+```
 
 ## Known test points (I can't verify these from here)
 - **MQTT-from-Deno**: `npm:mqtt` over WSS should work in the edge runtime; if a
