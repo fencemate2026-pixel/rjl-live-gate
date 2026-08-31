@@ -322,7 +322,7 @@
       renderOpens(); syncService();
       if(window.MutationObserver){
         var gs=$('gate-status'); if(gs) new MutationObserver(syncService).observe(gs,{childList:true,characterData:true,subtree:true});
-        var lg=$('log'); if(lg) new MutationObserver(function(muts){try{muts.forEach(function(m){(m.addedNodes||[]).forEach(function(n){if(((n.textContent||'').toLowerCase()).indexOf('open sent ok')>-1)recordOpen();});});}catch(e){}}).observe(lg,{childList:true});
+        var lg=$('log'); if(lg) new MutationObserver(function(muts){try{muts.forEach(function(m){(m.addedNodes||[]).forEach(function(n){if(((n.textContent||'').toLowerCase()).indexOf('gate command sent')>-1)recordOpen();});});}catch(e){}}).observe(lg,{childList:true});
       }
       setTimeout(syncService,1500);
     }catch(e){ /* never break the page */ }
