@@ -9,6 +9,7 @@ supabase/functions/
   gate-open/index.ts        authenticated open (signs + publishes server-side)
   stripe-webhook/index.ts   Stripe events -> suspend / resume the gate
 setup.sql                   schema: plan/status/stripe cols + locked secret table
+supabase/migrations/        audit trail + webhook idempotency SQL
 ```
 
 ## What it does
@@ -28,7 +29,8 @@ setup.sql                   schema: plan/status/stripe cols + locked secret tabl
    supabase link --project-ref nwyrnezyzelsfvxascgf
    ```
 2. Run **setup.sql** in the Supabase SQL Editor.
-3. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
+3. Apply the migration in `supabase/migrations/20260831051500_gate_action_audit.sql`.
+4. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
    ```
    supabase secrets set \
      ALLOWED_ORIGINS=https://your-gate-app.example.com,https://your-preview-app.example.com \
@@ -39,7 +41,7 @@ setup.sql                   schema: plan/status/stripe cols + locked secret tabl
      STRIPE_WEBHOOK_SECRET=whsec_xxx
    ```
    `ALLOWED_ORIGINS` should list the exact front-end origins allowed to call `gate-open`.
-4. Deploy:
+5. Deploy:
    ```
    supabase functions deploy stripe-webhook --no-verify-jwt
    supabase functions deploy gate-open
@@ -73,6 +75,9 @@ supabase functions logs stripe-webhook
 ```
 Suspend should publish a retained `hold:on`; the unit's serial prints
 `[hold] SUSPENDED — gate held open`. Resume with `stripe trigger invoice.paid`.
+
+Gate open attempts and webhook-driven hold/state changes are written to `gate_action_audit`.
+Webhook idempotency and raw event tracking are written to `stripe_webhook_events`.
 
 ## Local validation
 ```

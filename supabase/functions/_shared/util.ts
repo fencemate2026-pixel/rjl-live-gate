@@ -148,3 +148,65 @@ export async function publishHold(gateId: string, secret: string, hold: "on" | "
     true,
   );
 }
+
+export async function logGateAction(
+  db: ReturnType<typeof admin>,
+  entry: {
+    gateId?: string | null;
+    actionType: string;
+    actionStatus: "accepted" | "rejected" | "success" | "ignored" | "error";
+    actionSource: string;
+    actorUserId?: string | null;
+    stripeEventId?: string | null;
+    detail?: Record<string, unknown>;
+  },
+) {
+  const { error } = await db.from("gate_action_audit").insert({
+    gate_id: entry.gateId ?? null,
+    action_type: entry.actionType,
+    action_status: entry.actionStatus,
+    action_source: entry.actionSource,
+    actor_user_id: entry.actorUserId ?? null,
+    stripe_event_id: entry.stripeEventId ?? null,
+    detail: entry.detail ?? {},
+  });
+  if (error) throw error;
+}
+
+export async function claimStripeWebhookEvent(
+  db: ReturnType<typeof admin>,
+  event: {
+    eventId: string;
+    eventType: string;
+    subscriptionId?: string | null;
+    payload: Record<string, unknown>;
+  },
+): Promise<boolean> {
+  const { error } = await db.from("stripe_webhook_events").insert({
+    event_id: event.eventId,
+    event_type: event.eventType,
+    subscription_id: event.subscriptionId ?? null,
+    payload: event.payload,
+  });
+  if (!error) return true;
+  if (error.code === "23505") return false;
+  throw error;
+}
+
+export async function completeStripeWebhookEvent(
+  db: ReturnType<typeof admin>,
+  eventId: string,
+  update: {
+    processingStatus: "processed" | "ignored" | "error";
+    gateId?: string | null;
+    result?: Record<string, unknown>;
+  },
+) {
+  const { error } = await db.from("stripe_webhook_events").update({
+    gate_id: update.gateId ?? null,
+    processing_status: update.processingStatus,
+    processed_at: new Date().toISOString(),
+    result: update.result ?? {},
+  }).eq("event_id", eventId);
+  if (error) throw error;
+}

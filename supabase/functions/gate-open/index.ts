@@ -1,6 +1,6 @@
 // RJL — authenticated open. The browser NEVER holds the HMAC secret or broker creds.
 // Deploy: supabase functions deploy gate-open
-import { admin, corsHeaders, getGateSecret, json, publishOpen, userClient } from "../_shared/util.ts";
+import { admin, corsHeaders, getGateSecret, json, logGateAction, publishOpen, userClient } from "../_shared/util.ts";
 
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
@@ -30,9 +30,26 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (linkError) {
     console.error("authorization lookup failed", linkError);
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "error",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+    }).catch((e) => console.error("audit log failed", e));
     return json({ error: "authorization lookup failed" }, 500, origin);
   }
-  if (!link) return json({ error: "forbidden" }, 403, origin);
+  if (!link) {
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "rejected",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+      detail: { reason: "user_not_linked" },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ error: "forbidden" }, 403, origin);
+  }
 
   const { data: gate, error: gateError } = await db.from("gates")
     .select("service_status")
@@ -40,20 +57,62 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (gateError) {
     console.error("gate lookup failed", gateError);
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "error",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+    }).catch((e) => console.error("audit log failed", e));
     return json({ error: "gate lookup failed" }, 500, origin);
   }
   if (!gate) return json({ error: "gate not found" }, 404, origin);
-  if (gate.service_status === "suspended") return json({ error: "service suspended" }, 402, origin);
+  if (gate.service_status === "suspended") {
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "rejected",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+      detail: { reason: "service_suspended" },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ error: "service suspended" }, 402, origin);
+  }
 
   const secret = await getGateSecret(db, gateId);
-  if (!secret) return json({ error: "gate not provisioned" }, 500, origin);
+  if (!secret) {
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "error",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+      detail: { reason: "missing_gate_secret" },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ error: "gate not provisioned" }, 500, origin);
+  }
 
   try {
     await publishOpen(gateId, secret);
   } catch (e) {
     console.error("publish failed", e);
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_publish",
+      actionStatus: "error",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+    }).catch((err) => console.error("audit log failed", err));
     return json({ error: "publish failed" }, 502, origin);
   }
+
+  await logGateAction(db, {
+    gateId,
+    actionType: "open_publish",
+    actionStatus: "success",
+    actionSource: "gate-open",
+    actorUserId: user.id,
+  }).catch((e) => console.error("audit log failed", e));
 
   return json({ ok: true, gate: gateId }, 200, origin);
 });

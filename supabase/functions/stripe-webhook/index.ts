@@ -2,10 +2,13 @@
 // Deploy: supabase functions deploy stripe-webhook --no-verify-jwt
 import {
   admin,
+  claimStripeWebhookEvent,
+  completeStripeWebhookEvent,
   corsHeaders,
   getGateSecret,
   hmacHex,
   json,
+  logGateAction,
   publishHold,
   requiredEnv,
   timingSafeEqual,
@@ -86,41 +89,137 @@ Deno.serve(async (req) => {
   }
 
   const eventType = maybeString(event.type);
+  const eventId = maybeString(event.id);
   const object = asRecord(asRecord(event.data)?.object);
-  if (!eventType || !object) return json({ error: "invalid event payload" }, 400, origin);
+  if (!eventType || !eventId || !object) return json({ error: "invalid event payload" }, 400, origin);
+
+  const subscriptionId = maybeString(object.subscription) ?? maybeString(object.id);
+
+  const db = admin();
+  const claimed = await claimStripeWebhookEvent(db, {
+    eventId,
+    eventType,
+    subscriptionId,
+    payload: event,
+  });
+  if (!claimed) {
+    await logGateAction(db, {
+      actionType: "stripe_webhook",
+      actionStatus: "ignored",
+      actionSource: "stripe-webhook",
+      stripeEventId: eventId,
+      detail: { reason: "duplicate_event", eventType },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ ok: true, ignored: true, reason: "duplicate event" }, 200, origin);
+  }
 
   const action = deriveAction(eventType, object);
   if (!action) {
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "ignored",
+      result: { reason: "unsupported_event", eventType },
+    }).catch((e) => console.error("event update failed", e));
+    await logGateAction(db, {
+      actionType: "stripe_webhook",
+      actionStatus: "ignored",
+      actionSource: "stripe-webhook",
+      stripeEventId: eventId,
+      detail: { reason: "unsupported_event", eventType },
+    }).catch((e) => console.error("audit log failed", e));
     return json({ ok: true, ignored: true, event_type: eventType }, 200, origin);
   }
 
-  const db = admin();
   const { data: gate, error: gateLookupError } = await db.from("gates")
     .select("id, service_status, plan")
     .eq("stripe_subscription_id", action.subscriptionId)
     .maybeSingle();
   if (gateLookupError) {
     console.error("gate lookup failed", gateLookupError);
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "error",
+      result: { reason: "gate_lookup_failed" },
+    }).catch((e) => console.error("event update failed", e));
     return json({ error: "gate lookup failed" }, 500, origin);
   }
-  if (!gate) return json({ ok: true, ignored: true, reason: "subscription not linked to gate" }, 200, origin);
+  if (!gate) {
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "ignored",
+      result: { reason: "subscription_not_linked" },
+    }).catch((e) => console.error("event update failed", e));
+    await logGateAction(db, {
+      actionType: "stripe_webhook",
+      actionStatus: "ignored",
+      actionSource: "stripe-webhook",
+      stripeEventId: eventId,
+      detail: { reason: "subscription_not_linked", subscriptionId: action.subscriptionId },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ ok: true, ignored: true, reason: "subscription not linked to gate" }, 200, origin);
+  }
   if (gate.plan !== "maintenance") {
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "ignored",
+      gateId: gate.id,
+      result: { reason: "gate_not_maintenance" },
+    }).catch((e) => console.error("event update failed", e));
+    await logGateAction(db, {
+      gateId: gate.id,
+      actionType: "stripe_webhook",
+      actionStatus: "ignored",
+      actionSource: "stripe-webhook",
+      stripeEventId: eventId,
+      detail: { reason: "gate_not_maintenance" },
+    }).catch((e) => console.error("audit log failed", e));
     return json({ ok: true, ignored: true, reason: "gate is not on maintenance plan" }, 200, origin);
   }
 
   const secret = await getGateSecret(db, gate.id);
-  if (!secret) return json({ error: "gate secret missing" }, 500, origin);
+  if (!secret) {
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "error",
+      gateId: gate.id,
+      result: { reason: "missing_gate_secret" },
+    }).catch((e) => console.error("event update failed", e));
+    return json({ error: "gate secret missing" }, 500, origin);
+  }
 
   try {
     await publishHold(gate.id, secret, action.hold);
     await updateGateServiceStatus(db, gate.id, action.serviceStatus);
   } catch (e) {
     console.error("failed to sync gate state", e);
+    await completeStripeWebhookEvent(db, eventId, {
+      processingStatus: "error",
+      gateId: gate.id,
+      result: { reason: "failed_to_sync_gate_state", hold: action.hold, serviceStatus: action.serviceStatus },
+    }).catch((err) => console.error("event update failed", err));
+    await logGateAction(db, {
+      gateId: gate.id,
+      actionType: "service_state_sync",
+      actionStatus: "error",
+      actionSource: "stripe-webhook",
+      stripeEventId: eventId,
+      detail: { hold: action.hold, serviceStatus: action.serviceStatus, reason: action.reason },
+    }).catch((err) => console.error("audit log failed", err));
     return json({ error: "failed to sync gate state" }, 502, origin);
   }
 
+  await completeStripeWebhookEvent(db, eventId, {
+    processingStatus: "processed",
+    gateId: gate.id,
+    result: { hold: action.hold, serviceStatus: action.serviceStatus, reason: action.reason },
+  }).catch((e) => console.error("event update failed", e));
+  await logGateAction(db, {
+    gateId: gate.id,
+    actionType: "service_state_sync",
+    actionStatus: "success",
+    actionSource: "stripe-webhook",
+    stripeEventId: eventId,
+    detail: { hold: action.hold, serviceStatus: action.serviceStatus, reason: action.reason },
+  }).catch((e) => console.error("audit log failed", e));
+
   return json({
     ok: true,
+    event_id: eventId,
     gate: gate.id,
     service_status: action.serviceStatus,
     hold: action.hold,
