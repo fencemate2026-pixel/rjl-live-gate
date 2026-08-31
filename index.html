@@ -9,39 +9,104 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --app:#081826; --sidebar:#061827; --panel:#10293C; --elev:#163A54; --border:#29475C; --text:#F4F7FA; --muted:#9CB1C3; --accent:#F36F21; --good:#2BB673; --warn:#F3B43F; --bad:#E45454; --cyan:#56C2D6; --lane:#56C2D6; }
-    *{box-sizing:border-box;margin:0;padding:0} body{font-family:'IBM Plex Sans',sans-serif;color:var(--text);background:var(--app);overflow:hidden}
-    button,input{font:inherit;color:inherit} .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums} .tiny{font-size:12px;color:var(--muted)}
-    .app-shell{height:100vh;display:grid;grid-template-columns:256px minmax(0,1fr)} .sidebar{background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
-    .brand{height:68px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);font-weight:700}
-    .menu{padding:10px 0;display:grid;gap:4px} .menu button{height:44px;border:0;background:transparent;text-align:left;padding:0 18px 0 20px;color:var(--muted)}
+    :root {
+      --app:#081826; --sidebar:#061827; --panel:#10293C; --elev:#163A54; --border:#29475C;
+      --text:#F4F7FA; --muted:#9CB1C3; --accent:#F36F21; --good:#2BB673; --warn:#F3B43F; --bad:#E45454; --cyan:#56C2D6;
+      --lane:#56C2D6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'IBM Plex Sans',sans-serif;color:var(--text);background:var(--app);overflow:hidden}
+    button,input,select,textarea{font:inherit;color:inherit}
+    .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+    .tiny{font-size:12px;color:var(--muted)}
+    .field{min-height:44px;border-radius:10px;border:1px solid var(--border);background:#0d2438;color:var(--text);padding:0 12px;width:100%}
+    .btn{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--elev);cursor:pointer}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+    .app-shell{height:100vh;display:grid;grid-template-columns:256px minmax(0,1fr)}
+    .sidebar{background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
+    .brand{height:68px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);font-weight:700;letter-spacing:.4px}
+    .menu{padding:10px 0;display:grid;gap:4px}
+    .menu button{height:44px;border:0;background:transparent;text-align:left;padding:0 18px 0 20px;color:var(--muted)}
     .menu button.active{background:#0d2640;border-left:4px solid var(--accent);padding-left:16px;color:var(--text)}
     .sidebar-foot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);display:grid;gap:8px}
-    .main{min-width:0;display:grid;grid-template-rows:72px 112px 52px minmax(0,1fr)} .topbar{border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between}
-    .lane-toggle{display:flex;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px} .lane-toggle button{min-height:44px;border:1px solid transparent;border-radius:8px;background:transparent;padding:0 16px;color:var(--muted)}
-    .lane-toggle button.active{background:var(--elev);border-color:var(--lane);color:var(--text)} .advisory{font-size:13px;color:var(--muted)}
-    .kpis{padding:10px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;border-bottom:1px solid var(--border)} .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
-    .kpi .value{font-size:30px;font-weight:700;line-height:1} .kpi .meta{font-size:13px;color:var(--muted)} .mini-bars{display:flex;align-items:flex-end;gap:6px;height:42px}
+
+    .main{min-width:0;display:grid;grid-template-rows:72px 112px 52px minmax(0,1fr)}
+    .topbar{border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .lane-toggle{display:flex;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px}
+    .lane-toggle button{min-height:44px;border:1px solid transparent;border-radius:8px;background:transparent;padding:0 16px;color:var(--muted)}
+    .lane-toggle button.active{background:var(--elev);border-color:var(--lane);color:var(--text)}
+    .advisory{font-size:13px;color:var(--muted)}
+
+    .kpis{padding:10px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;border-bottom:1px solid var(--border)}
+    .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+    .kpi .value{font-size:30px;font-weight:700;line-height:1}
+    .kpi .meta{font-size:13px;color:var(--muted)}
+    .mini-bars{display:flex;align-items:flex-end;gap:6px;height:42px}
     .mini-bars span{width:12px;border:1px solid #3f5f77;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#3f5f77,#1a364d)}
-    .event-rail{border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;background:#0c2234} .event-rail .tiny{margin-left:8px}
-    .cockpit-wrap{position:relative;min-height:0;padding:24px} .lane-rail{position:absolute;left:24px;right:24px;top:12px;height:4px;border-radius:999px;background:linear-gradient(90deg,transparent,var(--lane),transparent)}
+
+    .event-rail{border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;background:#0c2234}
+    .timer{min-width:126px;text-align:center;padding:8px 10px;border-radius:10px;border:1px solid var(--border);font-weight:700}
+    .timer.green{background:#153c2f;color:#b2f2d4}
+    .timer.amber{background:#473a1f;color:#f8d88b}
+    .timer.red{background:#4b2525;color:#ffb1b1}
+
+    .cockpit-wrap{position:relative;min-height:0;padding:24px}
+    .lane-rail{position:absolute;left:24px;right:24px;top:12px;height:4px;border-radius:999px;background:linear-gradient(90deg,transparent,var(--lane),transparent)}
     .live-cockpit{height:100%;min-height:0;display:grid;grid-template-columns:minmax(270px,25fr) minmax(500px,46fr) minmax(350px,29fr);gap:24px}
-    .zone{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0} .zone-head{min-height:56px;border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between}
-    .zone-body{padding:20px;overflow:auto;display:grid;gap:16px;min-height:0} .divider{border-top:1px solid var(--border)}
-    .status-chip{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:#0d2438;color:var(--muted);font-size:13px} .status-dot{width:8px;height:8px;border-radius:50%}
-    .btn{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--elev);cursor:pointer} .btn[disabled]{opacity:.45;cursor:not-allowed}
-    .btn.approve{background:#174336;border-color:#2f7a5a}.btn.escalate{background:#4f4221;border-color:#887039}.btn.deny{background:#4e2828;border-color:#8b3e3e}.btn.primary{background:#184561;border-color:#3f6b8a}
-    .btn-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px} .field{min-height:44px;border-radius:10px;border:1px solid var(--border);background:#0d2438;color:var(--text);padding:0 12px;width:100%}
-    .checklist-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--border);border-radius:10px;background:#0d2437} .checklist-item input[type='checkbox']{width:18px;height:18px;accent-color:var(--good)}
+    .zone{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+    .zone-head{min-height:56px;border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .zone-body{padding:20px;overflow:auto;display:grid;gap:16px;min-height:0}
+
+    .status-chip{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:#0d2438;color:var(--muted);font-size:13px}
+    .status-dot{width:8px;height:8px;border-radius:50%}
+    .checklist-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--border);border-radius:10px;background:#0d2437}
+    .checklist-item input[type="checkbox"]{width:18px;height:18px;accent-color:var(--good)}
+
     .decision-foot{position:sticky;bottom:0;background:var(--panel);padding-top:12px;border-top:1px solid var(--border);display:grid;gap:10px}
-    .intercom-active,.boom-state{border:1px solid var(--border);border-radius:10px;padding:14px;background:#0d2438;display:grid;gap:10px} .endpoint{font-size:22px;font-weight:700}
+    .btn-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .btn.approve{background:#174336;border-color:#2f7a5a}
+    .btn.escalate{background:#4f4221;border-color:#887039}
+    .btn.deny{background:#4e2828;border-color:#8b3e3e}
+    .btn.primary{background:#184561;border-color:#3f6b8a}
+
+    .intercom-active,.boom-state,.record-panel{border:1px solid var(--border);border-radius:10px;padding:14px;background:#0d2438;display:grid;gap:10px}
+    .endpoint{font-size:22px;font-weight:700}
     .intercom-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-    .camera-main{height:240px;border:1px solid var(--border);border-radius:10px;background:#0b2031;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:12px}
-    .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.thumb{min-height:52px;border:1px solid var(--border);background:#0d2438;border-radius:10px;text-align:left;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.thumb.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-    .joystick{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px 52px;gap:6px;justify-content:center}.joy-btn{min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev)}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{width:min(520px,92vw);background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;display:grid;gap:12px}
+
+    .camera-main{position:relative;height:240px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#0b2031,#0a1a28);display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:12px;overflow:hidden}
+    .truck{position:absolute;bottom:18px;left:-110px;width:90px;height:40px;border-radius:8px;background:#56c2d6;box-shadow:0 0 0 2px rgba(255,255,255,.1) inset;transition:left 1.8s linear}
+    .truck::after{content:'';position:absolute;right:-20px;top:8px;width:20px;height:24px;border-radius:4px;background:#7fd8e8}
+    .truck.drive{left:calc(100% + 20px)}
+    .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .thumb{min-height:52px;border:1px solid var(--border);background:#0d2438;border-radius:10px;text-align:left;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+    .thumb.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+    .joystick-wrap{display:grid;justify-items:center;gap:8px}
+    .joystick-pad{width:220px;height:140px;opacity:.92;border-radius:14px;background:
+      radial-gradient(circle at 50% 50%, #88a8bb 0 2px, transparent 3px),
+      radial-gradient(circle at 50% 50%, #24313c 0 28px, #121b25 29px 30px, transparent 31px),
+      radial-gradient(circle at 50% 50%, #3f4e5b 0 56px, #202a35 57px 58px, transparent 59px),
+      linear-gradient(180deg,#22313c,#1b2b36)}
+    .joystick{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px 52px;gap:6px;justify-content:center}
+    .joy-btn{min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev)}
+
+    .stills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .still{min-height:58px;border:1px solid var(--border);border-radius:10px;background:#0d2438;padding:8px}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+    .modal.open{display:flex}
+    .modal-card{width:min(520px,92vw);background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;display:grid;gap:12px}
+
     .mobile-menu{display:none}
-    @media (max-width:1279px){.app-shell{grid-template-columns:0 minmax(0,1fr)}.sidebar{position:fixed;inset:0 auto 0 0;width:256px;transform:translateX(-100%);transition:.2s;z-index:9}.sidebar.open{transform:translateX(0)}.mobile-menu{display:inline-flex;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev);padding:0 14px;align-items:center}.live-cockpit{grid-template-columns:1fr}.zone{min-height:320px}}
+    @media (max-width:1279px){
+      .app-shell{grid-template-columns:0 minmax(0,1fr)}
+      .sidebar{position:fixed;inset:0 auto 0 0;width:256px;transform:translateX(-100%);transition:.2s;z-index:9}
+      .sidebar.open{transform:translateX(0)}
+      .mobile-menu{display:inline-flex;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev);padding:0 14px;align-items:center}
+      .live-cockpit{grid-template-columns:1fr}
+      .zone{min-height:320px}
+    }
   </style>
 </head>
 <body>
@@ -49,7 +114,13 @@
     <aside class="sidebar" id="sidebar">
       <div class="brand">RJL LIVE CONTROL</div>
       <nav class="menu">
-        <button class="active">Live Control</button><button>Vehicle Queue</button><button>Records</button><button>Exceptions</button><button>AI Assistant</button><button>System Health</button><button>Settings</button>
+        <button class="active">Live Control</button>
+        <button>Vehicle Queue</button>
+        <button>Records</button>
+        <button>Exceptions</button>
+        <button>AI Assistant</button>
+        <button>System Health</button>
+        <button>Settings</button>
       </nav>
       <div class="sidebar-foot">
         <div>Operator: <span class="mono" id="operatorName">Not signed in</span></div>
@@ -62,32 +133,136 @@
 
     <main class="main">
       <header class="topbar">
-        <div style="display:flex;align-items:center;gap:12px;"><button class="mobile-menu" id="menuBtn">Menu</button><div class="tiny">ENTRY LANE / EXIT LANE</div><div class="lane-toggle"><button id="laneEntry" class="active">ENTRY LANE</button><button id="laneExit">EXIT LANE</button></div></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="mobile-menu" id="menuBtn">Menu</button>
+          <div class="tiny">ENTRY LANE / EXIT LANE</div>
+          <div class="lane-toggle">
+            <button id="laneEntry" class="active">ENTRY LANE</button>
+            <button id="laneExit">EXIT LANE</button>
+          </div>
+        </div>
         <div class="advisory">AI Assistant is advisory-only for procedures, records, exceptions and system health.</div>
       </header>
 
       <section class="kpis">
-        <article class="kpi"><div><div class="tiny">Vehicles today</div><div class="value mono" id="vehiclesToday">142</div><div class="meta">Entry/Exit split in legend · exact labels</div></div><div class="mini-bars"><span style="height:16px"></span><span style="height:20px"></span><span style="height:26px"></span><span style="height:31px"></span><span style="height:29px"></span><span style="height:36px"></span></div></article>
-        <article class="kpi"><div><div class="tiny">Reefer checks today</div><div class="value mono" id="reeferValue">3.2°C</div><div class="meta" id="reeferMeta">Checklist reading · 3.2°C · entered 10:42</div></div><div class="meta mono" style="text-align:right;line-height:1.45"><div>Within range: 38</div><div>Warm exception: 3</div><div>Cold exception: 1</div></div></article>
+        <article class="kpi">
+          <div>
+            <div class="tiny">Vehicles today</div>
+            <div class="value mono" id="vehiclesToday">142</div>
+            <div class="meta">Entry/Exit split in legend · exact labels</div>
+          </div>
+          <div class="mini-bars"><span style="height:16px"></span><span style="height:20px"></span><span style="height:26px"></span><span style="height:31px"></span><span style="height:29px"></span><span style="height:36px"></span></div>
+        </article>
+        <article class="kpi">
+          <div>
+            <div class="tiny">Reefer guidance (Australia yard weather)</div>
+            <div class="value mono" id="reeferValue">3.2°C</div>
+            <div class="meta" id="reeferMeta">Checklist reading · 3.2°C · entered 10:42</div>
+            <div class="tiny mono" id="ambientMeta">Ambient: loading…</div>
+            <div class="tiny" id="reeferGuide">Loading recommendation…</div>
+          </div>
+          <div class="meta mono" style="text-align:right;line-height:1.45;"><div>Within range: 38</div><div>Warm exception: 3</div><div>Cold exception: 1</div></div>
+        </article>
       </section>
 
-      <div class="event-rail"><span id="eventMessage">A vehicle has been detected in the <span id="eventLane">entry lane</span>.</span><span class="tiny mono" id="eventMeta">10:44 · source: loop + camera (deduplicated)</span></div>
+      <div class="event-rail">
+        <div class="timer green mono" id="turnTimer">60s turnaround</div>
+        <span id="eventMessage">A vehicle has been detected in the <span id="eventLane">entry lane</span>.</span>
+        <span class="tiny mono" id="eventMeta">10:44 · source: loop + camera (deduplicated)</span>
+        <button class="btn" id="ackAlertBtn">Acknowledge alert</button>
+      </div>
 
       <section class="cockpit-wrap">
         <div class="lane-rail"></div>
         <div class="live-cockpit">
-          <section class="zone"><div class="zone-head"><h2>Checklist</h2><span class="status-chip"><span class="status-dot" style="background:var(--lane)"></span><span id="laneBadge">ENTRY</span></span></div><div class="zone-body"><div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="activeVehicle">Vehicle: E-0743</span></div><div id="checklist"></div><div><div class="tiny">Temperature checklist reading</div><input class="field mono" id="tempInput" type="number" step="0.1" value="3.2"></div><div class="decision-foot"><div class="btn-row"><button class="btn approve" id="approveBtn">✓ Approve</button><button class="btn escalate" id="escalateBtn">⚠ Escalate exception</button><button class="btn deny" id="denyBtn">⛔ Deny — unsafe</button></div><button class="btn primary" id="boomRequestBtn">Request Entry Boom Open</button><div class="tiny" id="decisionText">No decision submitted.</div></div></div></section>
+          <section class="zone">
+            <div class="zone-head"><h2>Checklist</h2><span class="status-chip"><span class="status-dot" style="background:var(--lane)"></span><span id="laneBadge">ENTRY</span></span></div>
+            <div class="zone-body">
+              <div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="activeVehicle">Vehicle: E-0743</span></div>
+              <div id="checklist"></div>
+              <div>
+                <div class="tiny">Temperature checklist reading</div>
+                <input class="field mono" id="tempInput" type="number" step="0.1" value="3.2" />
+              </div>
+              <div>
+                <div class="tiny">Driver ID</div>
+                <input class="field mono" id="driverInput" placeholder="driver-001" />
+              </div>
+              <div class="record-panel">
+                <div class="tiny">ANPR + trust profile</div>
+                <input class="field mono" id="plateInput" placeholder="ABC123" />
+                <div class="btn-row" style="grid-template-columns:1fr 1fr;">
+                  <button class="btn" id="captureEntryBtn">ANPR capture Entry</button>
+                  <button class="btn" id="captureExitBtn">ANPR capture Exit</button>
+                </div>
+                <button class="btn deny" id="flagUntruthBtn">Flag prior untruth on this vehicle</button>
+                <div class="tiny" id="truckStatus">No plate scanned.</div>
+              </div>
+              <div class="decision-foot">
+                <div class="btn-row">
+                  <button class="btn approve" id="approveBtn">✓ Approve</button>
+                  <button class="btn escalate" id="escalateBtn">⚠ Escalate exception</button>
+                  <button class="btn deny" id="denyBtn">⛔ Deny — unsafe</button>
+                </div>
+                <button class="btn primary" id="boomRequestBtn">Request Entry Boom Open</button>
+                <div class="tiny" id="decisionText">No decision submitted.</div>
+              </div>
+            </div>
+          </section>
 
-          <section class="zone"><div class="zone-head"><h2>Intercom</h2><span class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="otherEndpointHealth">Car-height health: OK</span></span></div><div class="zone-body"><article class="intercom-active"><div class="tiny">Active session</div><div class="endpoint" id="activeEndpointLabel">ENTRY · TRUCK-HEIGHT INTERCOM</div><div class="intercom-controls"><button class="btn">Answer</button><button class="btn">Mute</button><button class="btn">Volume 70%</button><button class="btn">End call</button></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" data-endpoint="truck">Truck-height endpoint</button><button class="btn" data-endpoint="car">Car-height endpoint</button></div></article><div class="boom-state"><div><strong>Boom state:</strong> <span id="boomState">Closed</span></div><div class="tiny">Open request only · Roger controller manages movement and obstruction safety</div></div><div class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="serviceStatus">Hardwired safety: Healthy</span></div></div></section>
+          <section class="zone">
+            <div class="zone-head"><h2>Intercom</h2><span class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="otherEndpointHealth">Car-height health: OK</span></span></div>
+            <div class="zone-body">
+              <article class="intercom-active">
+                <div class="tiny">Active session</div>
+                <div class="endpoint" id="activeEndpointLabel">ENTRY · TRUCK-HEIGHT INTERCOM</div>
+                <div class="intercom-controls">
+                  <button class="btn">Answer</button><button class="btn">Mute</button><button class="btn">Volume 70%</button><button class="btn">End call</button>
+                </div>
+                <div class="btn-row" style="grid-template-columns:1fr 1fr;">
+                  <button class="btn" data-endpoint="truck">Truck-height endpoint</button>
+                  <button class="btn" data-endpoint="car">Car-height endpoint</button>
+                </div>
+              </article>
+              <div class="boom-state">
+                <div><strong>Boom state:</strong> <span id="boomState">Closed</span></div>
+                <div class="tiny">Open request only · Roger controller manages movement and obstruction safety</div>
+              </div>
+              <div class="record-panel">
+                <div class="tiny" id="serviceStatus">Hardwired safety: Healthy</div>
+                <div class="tiny" id="groundStatus">Ground crew: not requested</div>
+                <div class="tiny" id="recordLinks">Truck/person records will attach checklist + images after decision.</div>
+              </div>
+            </div>
+          </section>
 
-          <section class="zone"><div class="zone-head"><h2>Cameras</h2><span class="status-chip"><span class="status-dot" style="background:var(--accent)"></span><span id="ptzTargetLabel">PTZ target: Entry · Approach / Wide</span></span></div><div class="zone-body"><div class="tiny" id="cameraFullName">Approach / Wide</div><div class="camera-main" id="cameraMain">Selected camera feed<br><span class="mono">Approach / Wide</span></div><div class="thumbs" id="cameraThumbs"></div><div class="divider"></div><div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="ptzStatus">PTZ idle</span></div><div class="joystick"><span></span><button class="joy-btn" data-dir="up">↑</button><span></span><button class="joy-btn" data-dir="left">←</button><button class="joy-btn" data-dir="stop">■</button><button class="joy-btn" data-dir="right">→</button><span></span><button class="joy-btn" data-dir="down">↓</button><span></span></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="zoomInBtn">Zoom +</button><button class="btn" id="zoomOutBtn">Zoom −</button></div><div class="btn-row" style="grid-template-columns:repeat(4,1fr)"><button class="btn preset" data-preset="Cab">Cab</button><button class="btn preset" data-preset="Plate">Plate</button><button class="btn preset" data-preset="Trailer">Trailer</button><button class="btn preset" data-preset="Rear">Rear</button></div><div class="tiny" id="ptzAvailText">PTZ available for selected camera.</div></div></section>
+          <section class="zone">
+            <div class="zone-head"><h2>Cameras</h2><span class="status-chip"><span class="status-dot" style="background:var(--accent)"></span><span id="ptzTargetLabel">PTZ target: Entry · Approach / Wide</span></span></div>
+            <div class="zone-body">
+              <div class="tiny" id="cameraFullName">Approach / Wide</div>
+              <div class="camera-main" id="cameraMain">Selected camera feed<br><span class="mono" id="cameraMainLabel">Approach / Wide</span><div class="truck" id="truckAnim"></div></div>
+              <div class="thumbs" id="cameraThumbs"></div>
+              <div class="joystick-wrap">
+                <div class="joystick-pad"></div>
+                <div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="ptzStatus">PTZ idle</span></div>
+                <div class="joystick"><span></span><button class="joy-btn" data-dir="up">↑</button><span></span><button class="joy-btn" data-dir="left">←</button><button class="joy-btn" data-dir="stop">■</button><button class="joy-btn" data-dir="right">→</button><span></span><button class="joy-btn" data-dir="down">↓</button><span></span></div>
+                <div class="btn-row" style="grid-template-columns:1fr 1fr;"><button class="btn" id="zoomInBtn">Zoom +</button><button class="btn" id="zoomOutBtn">Zoom −</button></div>
+                <div class="btn-row" style="grid-template-columns:repeat(4,1fr);"><button class="btn preset" data-preset="Cab">Cab</button><button class="btn preset" data-preset="Plate">Plate</button><button class="btn preset" data-preset="Trailer">Trailer</button><button class="btn preset" data-preset="Rear">Rear</button></div>
+                <div class="tiny" id="ptzAvailText">PTZ available for selected camera.</div>
+              </div>
+              <div>
+                <div class="tiny">Captured still images</div>
+                <div class="stills" id="stills"></div>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
     </main>
   </div>
 
-  <div class="modal" id="denyModal"><div class="modal-card"><h3>Confirm unsafe denial</h3><div class="tiny">Reason is required. No open request will be sent.</div><textarea class="field" id="denyReason" style="min-height:120px;padding:10px;resize:vertical"></textarea><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="denyCancel">Cancel</button><button class="btn deny" id="denyConfirm">Confirm Deny</button></div></div></div>
-  <div class="modal" id="loginModal"><div class="modal-card"><h3>Operator sign-in</h3><input class="field" id="email" type="email" placeholder="Email" /><input class="field" id="opPassword" type="password" placeholder="Password" /><div class="tiny" id="loginError"></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="loginCancel">Cancel</button><button class="btn primary" id="loginConfirm">Sign in</button></div></div></div>
+  <div class="modal" id="denyModal"><div class="modal-card"><h3>Confirm unsafe denial</h3><div class="tiny">Reason is required. No open request will be sent.</div><textarea class="field" id="denyReason" style="min-height:120px;padding:10px;resize:vertical"></textarea><div class="btn-row" style="grid-template-columns:1fr 1fr;"><button class="btn" id="denyCancel">Cancel</button><button class="btn deny" id="denyConfirm">Confirm Deny</button></div></div></div>
+  <div class="modal" id="loginModal"><div class="modal-card"><h3>Operator sign-in</h3><input class="field" id="email" type="email" placeholder="Email" /><input class="field" id="opPassword" type="password" placeholder="Password" /><div class="tiny" id="loginError"></div><div class="btn-row" style="grid-template-columns:1fr 1fr;"><button class="btn" id="loginCancel">Cancel</button><button class="btn primary" id="loginConfirm">Sign in</button></div></div></div>
 
   <script>
     const SUPABASE_URL = window.RJL_SUPABASE_URL || '';
@@ -96,145 +271,426 @@
     const sb = SUPABASE_URL && SUPABASE_ANON ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
     const checklistOrder = ['Driver','Code','Loaded','Precheck','Temperature','Fuel','Trailer number','Trailer clean','Pogo','Board count'];
-    const laneState = { entry:{vehicle:'E-0743',boom:'Closed',decision:'No decision submitted.',decisionType:''}, exit:{vehicle:'X-0192',boom:'Closed',decision:'No decision submitted.',decisionType:''} };
-    const authState = { signedIn:false, readOnly:false, suspended:false, gateError:'' };
-    const cameras = [{name:'Approach / Wide',ptz:true},{name:'Driver / Nearside',ptz:true},{name:'Offside',ptz:true},{name:'Load Aperture / Rear',ptz:false},{name:'Undercarriage / Tyres',ptz:false},{name:'Overhead / Top',ptz:false}];
-    let lane='entry', endpoint='truck', selectedCamera=0, movingDir=null;
+    const cameras = [
+      { name:'Approach / Wide', ptz:true },
+      { name:'Driver / Nearside', ptz:true },
+      { name:'Offside', ptz:true },
+      { name:'Load Aperture / Rear', ptz:false },
+      { name:'Undercarriage / Tyres', ptz:false },
+      { name:'Overhead / Top', ptz:false }
+    ];
+
+    const state = {
+      lane:'entry', endpoint:'truck', selectedCamera:0, movingDir:null,
+      laneState:{ entry:{vehicle:'E-0743',boom:'Closed',decision:'No decision submitted.',decisionType:''}, exit:{vehicle:'X-0192',boom:'Closed',decision:'No decision submitted.',decisionType:''} },
+      auth:{ signedIn:false, readOnly:false, suspended:false, gateError:'' },
+      countdown:60, countdownTimer:null, beepTimer:null, audioCtx:null,
+      activeAlertKey:'', stills:[],
+      truckDB: JSON.parse(localStorage.getItem('rjl.truckDB') || '{}'),
+      personDB: JSON.parse(localStorage.getItem('rjl.personDB') || '{}')
+    };
 
     const checklistEl = document.getElementById('checklist');
-    checklistOrder.forEach((label)=>{
-      const row=document.createElement('div'); row.className='checklist-item';
+    checklistOrder.forEach((label) => {
+      const row = document.createElement('div');
+      row.className = 'checklist-item';
       row.innerHTML = `<input type="checkbox" aria-label="${label}"><span>${label}</span><span class="status-chip"><span class="status-dot" style="background:var(--muted)"></span><span>Pending</span></span>`;
-      row.querySelector('input[type="checkbox"]').addEventListener('change',(e)=>{ row.querySelector('.status-chip').innerHTML = e.target.checked ? '<span class="status-dot" style="background:var(--good)"></span><span>Complete</span>' : '<span class="status-dot" style="background:var(--muted)"></span><span>Pending</span>'; });
+      row.querySelector('input').addEventListener('change', (e) => {
+        row.querySelector('.status-chip').innerHTML = e.target.checked
+          ? '<span class="status-dot" style="background:var(--good)"></span><span>Complete</span>'
+          : '<span class="status-dot" style="background:var(--muted)"></span><span>Pending</span>';
+      });
       checklistEl.appendChild(row);
     });
 
-    function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
-    function setEvent(text,source){ document.getElementById('eventMessage').innerHTML = `${text} <span id="eventLane">${lane} lane</span>.`; document.getElementById('eventMeta').textContent = `${now()} · source: ${source}`; }
-    function updateTempMeta(){ const t=Number(document.getElementById('tempInput').value || 0).toFixed(1); document.getElementById('reeferValue').textContent=`${t}°C`; document.getElementById('reeferMeta').textContent=`Checklist reading · ${t}°C · entered ${now()}`; }
+    function nowTime(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+    function stamp(){ return new Date().toISOString(); }
+    function saveDB(){ localStorage.setItem('rjl.truckDB', JSON.stringify(state.truckDB)); localStorage.setItem('rjl.personDB', JSON.stringify(state.personDB)); }
 
-    function canOperate(){
-      return !authState.readOnly && authState.signedIn && !authState.suspended;
-    }
+    function canOperate(){ return !state.auth.readOnly && state.auth.signedIn && !state.auth.suspended; }
+    function timerClass(){ return state.countdown > 30 ? 'green' : state.countdown > 10 ? 'amber' : 'red'; }
 
     function applyControlLocks(){
       const allowed = canOperate();
       document.getElementById('approveBtn').disabled = !allowed;
       document.getElementById('escalateBtn').disabled = !allowed;
       document.getElementById('denyBtn').disabled = !allowed;
-      document.getElementById('boomRequestBtn').disabled = !allowed || laneState[lane].decisionType !== 'approve';
-      document.querySelectorAll('.intercom-controls .btn,.intercom-active [data-endpoint]').forEach((el)=>el.disabled = !allowed);
-      document.getElementById('signInBtn').disabled = authState.readOnly || authState.signedIn;
-      document.getElementById('signOutBtn').disabled = authState.readOnly || !authState.signedIn;
-      document.getElementById('authStatus').textContent = !sb ? 'Configure Supabase runtime vars (RJL_SUPABASE_URL/RJL_SUPABASE_ANON)' : (authState.gateError || (authState.readOnly ? 'Supervisor read-only mode' : (authState.signedIn ? (authState.suspended ? 'Service suspended' : 'Signed in and active') : 'Sign in required for boom requests')));
-      document.getElementById('serviceStatus').textContent = authState.suspended ? 'Service status: Suspended' : 'Hardwired safety: Healthy';
+      document.getElementById('boomRequestBtn').disabled = !allowed || state.laneState[state.lane].decisionType !== 'approve';
+      document.querySelectorAll('.intercom-controls .btn,.intercom-active [data-endpoint]').forEach((el) => { el.disabled = !allowed; });
+      document.getElementById('signInBtn').disabled = state.auth.readOnly || state.auth.signedIn;
+      document.getElementById('signOutBtn').disabled = state.auth.readOnly || !state.auth.signedIn;
+      document.getElementById('authStatus').textContent = !sb
+        ? 'Configure runtime RJL_SUPABASE_URL/RJL_SUPABASE_ANON or use demo auth'
+        : (state.auth.gateError || (state.auth.readOnly ? 'Supervisor read-only mode' : (state.auth.signedIn ? (state.auth.suspended ? 'Service suspended' : 'Signed in and active') : 'Sign in required for boom requests')));
+      document.getElementById('serviceStatus').textContent = state.auth.suspended ? 'Service status: Suspended' : 'Hardwired safety: Healthy';
+      document.querySelectorAll('.joy-btn,#zoomInBtn,#zoomOutBtn,.preset').forEach((el) => { el.disabled = !allowed || el.dataset.ptzDisabled === '1'; });
+    }
+
+    function setEvent(message, source){
+      document.getElementById('eventMessage').innerHTML = `${message} <span id="eventLane">${state.lane} lane</span>.`;
+      document.getElementById('eventMeta').textContent = `${nowTime()} · source: ${source}`;
+    }
+
+    function renderTimer(){
+      const el = document.getElementById('turnTimer');
+      el.className = `timer ${timerClass()} mono`;
+      el.textContent = `${state.countdown}s turnaround`;
+    }
+
+    function startCountdown(){
+      clearInterval(state.countdownTimer);
+      state.countdown = 60;
+      renderTimer();
+      state.countdownTimer = setInterval(() => {
+        state.countdown = Math.max(0, state.countdown - 1);
+        renderTimer();
+        if (state.countdown === 0) clearInterval(state.countdownTimer);
+      }, 1000);
+    }
+
+    function beepOnce(){
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!state.audioCtx) state.audioCtx = new AudioCtx();
+      if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+      const osc = state.audioCtx.createOscillator();
+      const gain = state.audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 680;
+      gain.gain.value = 0.03;
+      osc.connect(gain).connect(state.audioCtx.destination);
+      osc.start();
+      setTimeout(() => { osc.stop(); }, 180);
+    }
+
+    function startBuzzer(){
+      clearInterval(state.beepTimer);
+      beepOnce();
+      state.beepTimer = setInterval(beepOnce, 1800);
+    }
+
+    function stopBuzzer(){ clearInterval(state.beepTimer); state.beepTimer = null; }
+
+    function captureStill(cameraName, laneTag){
+      const item = { id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, camera: cameraName, lane: laneTag, at: nowTime() };
+      state.stills.unshift(item);
+      state.stills = state.stills.slice(0, 10);
+      const box = document.getElementById('stills');
+      box.innerHTML = state.stills.map((s) => `<div class="still"><div class="tiny">${s.camera}</div><div class="mono">${s.lane.toUpperCase()} · ${s.at}</div></div>`).join('');
+      return item;
+    }
+
+    function runDriveBySimulation(laneTag){
+      const truck = document.getElementById('truckAnim');
+      const previousCamera = state.selectedCamera;
+      let i = 0;
+      const interval = setInterval(() => {
+        state.selectedCamera = i;
+        updateCameraUI();
+        truck.classList.remove('drive');
+        void truck.offsetWidth;
+        truck.classList.add('drive');
+        captureStill(cameras[i].name, laneTag);
+        i += 1;
+        if (i >= cameras.length) {
+          clearInterval(interval);
+          state.selectedCamera = previousCamera;
+          updateCameraUI();
+        }
+      }, 2200);
+    }
+
+    function ensureTruckRecord(plate){
+      if (!state.truckDB[plate]) state.truckDB[plate] = { trust:'clear', incidents:[], checklists:[], images:[] };
+      return state.truckDB[plate];
+    }
+
+    function flagTruckStatus(){
+      const plate = document.getElementById('plateInput').value.trim().toUpperCase();
+      if (!plate) return;
+      const rec = ensureTruckRecord(plate);
+      rec.trust = 'watch';
+      rec.incidents.push({ type:'untruth_flag', at: stamp(), lane: state.lane });
+      saveDB();
+      renderTruckStatus(plate);
+    }
+
+    function renderTruckStatus(plate){
+      if (!plate) { document.getElementById('truckStatus').textContent = 'No plate scanned.'; return; }
+      const rec = ensureTruckRecord(plate);
+      const trustText = rec.trust === 'watch' ? '⚠ Flagged: prior untruth history' : '✓ Trust clear';
+      document.getElementById('truckStatus').textContent = `${plate} · ${trustText} · incidents: ${rec.incidents.length}`;
+    }
+
+    function attachCurrentToRecords(decisionType){
+      const plate = document.getElementById('plateInput').value.trim().toUpperCase();
+      const driver = document.getElementById('driverInput').value.trim() || 'unknown-driver';
+      if (!plate) return;
+      const checklist = Array.from(document.querySelectorAll('#checklist .checklist-item')).map((row, idx) => ({ item: checklistOrder[idx], complete: row.querySelector('input[type="checkbox"]').checked }));
+      const tempValue = Number(document.getElementById('tempInput').value || 0);
+      const truckRec = ensureTruckRecord(plate);
+      const stillRefs = state.stills.slice(0, 6).map((s) => ({ camera:s.camera, lane:s.lane, at:s.at }));
+      truckRec.images.push(...stillRefs);
+      truckRec.checklists.push({ at: stamp(), lane: state.lane, decision: decisionType, temp: tempValue, checklist });
+      if (!state.personDB[driver]) state.personDB[driver] = { checklists:[] };
+      state.personDB[driver].checklists.push({ at: stamp(), lane: state.lane, truck: plate, decision: decisionType, temp: tempValue, checklist });
+      saveDB();
+      document.getElementById('recordLinks').textContent = `Linked to truck ${plate} and person ${driver}. Images attached: ${stillRefs.length}.`;
+    }
+
+    function updateTempMeta(){
+      const t = Number(document.getElementById('tempInput').value || 0).toFixed(1);
+      document.getElementById('reeferValue').textContent = `${t}°C`;
+      document.getElementById('reeferMeta').textContent = `Checklist reading · ${t}°C · entered ${nowTime()}`;
+    }
+
+    async function loadWeatherGuidance(){
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-37.8136&longitude=144.9631&current=temperature_2m&timezone=Australia%2FMelbourne');
+        const json = await res.json();
+        const temp = Number(json?.current?.temperature_2m ?? NaN);
+        if (!Number.isFinite(temp)) throw new Error('no temp');
+        document.getElementById('ambientMeta').textContent = `Ambient (Melbourne AU): ${temp.toFixed(1)}°C · ${nowTime()}`;
+        let guide = 'Recommend chilled loads 2.0–4.0°C, frozen ≤ -18°C.';
+        if (temp >= 30) guide = 'Hot ambient: chilled 1.5–3.0°C, frozen ≤ -18°C; pre-cool trailer.';
+        else if (temp <= 10) guide = 'Cold ambient: chilled 2.5–4.5°C, frozen ≤ -18°C; avoid over-chilling produce.';
+        document.getElementById('reeferGuide').textContent = guide;
+      } catch {
+        document.getElementById('ambientMeta').textContent = `Ambient unavailable · ${nowTime()}`;
+        document.getElementById('reeferGuide').textContent = 'Use load-spec SOP ranges: chilled 2.0–4.0°C, frozen ≤ -18°C.';
+      }
+    }
+
+    async function loadGateStatus(){
+      if (!sb) { state.auth.suspended = false; state.auth.gateError = ''; applyControlLocks(); return; }
+      try {
+        const { data } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
+        if (!data) { state.auth.suspended = true; state.auth.gateError = `Gate record not found for ${GATE_ID}`; }
+        else { state.auth.suspended = data.service_status === 'suspended'; state.auth.gateError = ''; }
+      } catch (err) {
+        state.auth.suspended = true;
+        state.auth.gateError = `Gate status lookup failed: ${err?.message || err}`;
+      }
+      applyControlLocks();
+    }
+
+    function updateOperator(session){
+      state.auth.signedIn = !!session;
+      document.getElementById('operatorName').textContent = session?.user?.email || 'Not signed in';
+      loadGateStatus();
+    }
+
+    async function signIn(){
+      const email = document.getElementById('email').value.trim();
+      const pwd = document.getElementById('opPassword').value;
+      if (!email || !pwd) return;
+      if (!sb) { updateOperator({ user:{ email } }); document.getElementById('loginModal').classList.remove('open'); setEvent('Demo auth signed in', 'local'); return; }
+      const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+      if (error) { document.getElementById('loginError').textContent = error.message || 'Sign-in failed'; return; }
+      document.getElementById('loginError').textContent = '';
+      document.getElementById('loginModal').classList.remove('open');
+    }
+
+    async function signOut(){
+      if (!sb) { updateOperator(null); setEvent('Demo auth signed out', 'local'); return; }
+      await sb.auth.signOut();
     }
 
     function updateCameraUI(){
-      const cam = cameras[selectedCamera];
+      const cam = cameras[state.selectedCamera];
       const allowed = canOperate();
-      document.getElementById('ptzTargetLabel').textContent = `PTZ target: ${lane[0].toUpperCase()+lane.slice(1)} · ${cam.name}`;
+      document.getElementById('ptzTargetLabel').textContent = `PTZ target: ${state.lane[0].toUpperCase() + state.lane.slice(1)} · ${cam.name}`;
       document.getElementById('cameraFullName').textContent = cam.name;
-      document.getElementById('cameraMain').innerHTML = `Selected camera feed<br><span class="mono">${cam.name}</span>`;
+      document.getElementById('cameraMainLabel').textContent = cam.name;
       document.getElementById('ptzAvailText').textContent = cam.ptz ? 'PTZ available for selected camera.' : 'Fixed view · PTZ unavailable';
-      document.querySelectorAll('.thumb').forEach((el,i)=>el.classList.toggle('active', i===selectedCamera));
-      document.querySelectorAll('.joy-btn,#zoomInBtn,#zoomOutBtn,.preset').forEach((el)=>el.disabled = !allowed || !cam.ptz);
+      document.querySelectorAll('.thumb').forEach((el, i) => el.classList.toggle('active', i === state.selectedCamera));
+      document.querySelectorAll('.joy-btn,#zoomInBtn,#zoomOutBtn,.preset').forEach((el) => {
+        el.dataset.ptzDisabled = cam.ptz ? '0' : '1';
+        el.disabled = !allowed || !cam.ptz;
+      });
       if (!cam.ptz) stopPTZ('fixed camera selected');
     }
 
     function updateLaneUI(){
-      document.documentElement.style.setProperty('--lane', lane==='entry' ? '#56C2D6' : '#F3B43F');
-      document.getElementById('laneEntry').classList.toggle('active', lane==='entry');
-      document.getElementById('laneExit').classList.toggle('active', lane==='exit');
-      document.getElementById('laneBadge').textContent = lane.toUpperCase();
-      document.getElementById('activeVehicle').textContent = `Vehicle: ${laneState[lane].vehicle}`;
-      document.getElementById('boomRequestBtn').textContent = lane==='entry' ? 'Request Entry Boom Open' : 'Request Exit Boom Open';
-      document.getElementById('boomState').textContent = laneState[lane].boom;
-      document.getElementById('decisionText').textContent = laneState[lane].decision;
-      document.getElementById('activeEndpointLabel').textContent = `${lane.toUpperCase()} · ${endpoint.toUpperCase()}-HEIGHT INTERCOM`;
-      document.getElementById('otherEndpointHealth').textContent = `${endpoint==='truck' ? 'Car' : 'Truck'}-height health: OK`;
-      setEvent('A vehicle has been detected in the', 'loop + camera (deduplicated)');
+      document.documentElement.style.setProperty('--lane', state.lane === 'entry' ? '#56C2D6' : '#F3B43F');
+      document.getElementById('laneEntry').classList.toggle('active', state.lane === 'entry');
+      document.getElementById('laneExit').classList.toggle('active', state.lane === 'exit');
+      document.getElementById('laneBadge').textContent = state.lane.toUpperCase();
+      document.getElementById('activeVehicle').textContent = `Vehicle: ${state.laneState[state.lane].vehicle}`;
+      document.getElementById('boomRequestBtn').textContent = state.lane === 'entry' ? 'Request Entry Boom Open' : 'Request Exit Boom Open';
+      document.getElementById('boomState').textContent = state.laneState[state.lane].boom;
+      document.getElementById('decisionText').textContent = state.laneState[state.lane].decision;
+      document.getElementById('activeEndpointLabel').textContent = `${state.lane.toUpperCase()} · ${state.endpoint.toUpperCase()}-HEIGHT INTERCOM`;
+      document.getElementById('otherEndpointHealth').textContent = `${state.endpoint === 'truck' ? 'Car' : 'Truck'}-height health: OK`;
       applyControlLocks();
       updateCameraUI();
     }
 
-    const thumbs = document.getElementById('cameraThumbs');
-    cameras.forEach((cam,i)=>{ const b=document.createElement('button'); b.className='thumb'+(i===0?' active':''); b.textContent=cam.name; b.onclick=()=>{ selectedCamera=i; updateCameraUI();}; thumbs.appendChild(b); });
-
-    function setDecision(type,text){ laneState[lane].decisionType=type; laneState[lane].decision=text; document.getElementById('decisionText').textContent=text; applyControlLocks(); }
-
-    async function requestBoomOpen(){
-      if (!sb || !authState.signedIn || authState.suspended) return;
-      const reqLane = lane;
-      const previousBoomState = laneState[reqLane].boom;
-      laneState[reqLane].boom='Opening'; document.getElementById('boomState').textContent='Opening'; setEvent(`Open request sent for ${reqLane}`, 'operator action');
-      const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID, lane: reqLane } });
-      if (error || data?.error) { laneState[reqLane].boom=previousBoomState; if (lane===reqLane) document.getElementById('boomState').textContent=previousBoomState; setEvent(`Open request failed in ${reqLane}`, 'backend response'); return; }
-      laneState[reqLane].boom='Open'; if (lane===reqLane) document.getElementById('boomState').textContent='Open';
-    }
-
-    function startPTZ(dir){ const cam=cameras[selectedCamera]; if(!cam.ptz || dir==='stop') return stopPTZ('stopped'); movingDir=dir; document.getElementById('ptzStatus').textContent=`PTZ moving ${dir}`; }
-    function stopPTZ(reason='stopped'){ movingDir=null; document.getElementById('ptzStatus').textContent=`PTZ ${reason}`; }
-
-    async function loadGateStatus(){
-      if(!sb){ authState.suspended = false; applyControlLocks(); return; }
-      try {
-        const { data } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
-        if (!data) {
-          authState.suspended = true;
-          authState.gateError = `Gate record not found for ${GATE_ID}`;
-        } else {
-          authState.gateError = '';
-          authState.suspended = data.service_status === 'suspended';
-        }
-      } catch (err) {
-        authState.suspended = true;
-        authState.gateError = `Gate status lookup failed: ${err?.message || err}`;
-      }
+    function setDecision(type, text){
+      state.laneState[state.lane].decisionType = type;
+      state.laneState[state.lane].decision = text;
+      document.getElementById('decisionText').textContent = text;
+      stopBuzzer();
+      attachCurrentToRecords(type);
       applyControlLocks();
     }
-    function updateOperator(session){ authState.signedIn=!!session; document.getElementById('operatorName').textContent = session?.user?.email || 'Not signed in'; loadGateStatus(); }
-    async function signIn(){ if(!sb) return; const email=document.getElementById('email').value.trim(); const operatorPwd=document.getElementById('opPassword').value; if(!email||!operatorPwd) return; const { error } = await sb.auth.signInWithPassword({ email, password: operatorPwd }); if(error){ document.getElementById('loginError').textContent = error.message || 'Sign-in failed'; return; } document.getElementById('loginError').textContent = ''; document.getElementById('loginModal').classList.remove('open'); }
-    async function signOut(){ if(!sb) return; await sb.auth.signOut(); }
 
-    document.getElementById('laneEntry').onclick = () => { lane='entry'; updateLaneUI(); };
-    document.getElementById('laneExit').onclick = () => { lane='exit'; updateLaneUI(); };
-    document.querySelectorAll('[data-endpoint]').forEach((btn)=>btn.onclick = ()=>{ endpoint=btn.dataset.endpoint; updateLaneUI(); });
-    document.getElementById('approveBtn').onclick=()=>setDecision('approve','✓ Approved. Boom open request available.');
-    document.getElementById('escalateBtn').onclick=()=>setDecision('escalate','⚠ Amber exception routed (no hold condition).');
-    document.getElementById('denyBtn').onclick=()=>document.getElementById('denyModal').classList.add('open');
-    document.getElementById('boomRequestBtn').onclick=requestBoomOpen;
-    document.getElementById('denyCancel').onclick=()=>document.getElementById('denyModal').classList.remove('open');
-    document.getElementById('denyConfirm').onclick=()=>{ const reason=document.getElementById('denyReason').value.trim(); if(!reason) return; setDecision('deny', `⛔ Denied unsafe: ${reason}`); document.getElementById('denyReason').value=''; document.getElementById('denyModal').classList.remove('open'); };
-    document.querySelectorAll('.joy-btn').forEach((btn)=>{ const dir=btn.dataset.dir; btn.addEventListener('pointerdown',(e)=>{e.preventDefault();startPTZ(dir)}); btn.addEventListener('pointerup',()=>stopPTZ('stopped')); btn.addEventListener('pointercancel',()=>stopPTZ('stopped')); btn.addEventListener('mouseleave',()=>movingDir && stopPTZ('stopped')); });
-    window.addEventListener('blur',()=>stopPTZ('stopped')); document.addEventListener('visibilitychange',()=>document.hidden&&stopPTZ('stopped')); window.addEventListener('pointerup',()=>movingDir&&stopPTZ('stopped')); window.addEventListener('pointercancel',()=>stopPTZ('stopped'));
-    document.getElementById('zoomInBtn').onclick=()=>document.getElementById('ptzStatus').textContent='Zooming in';
-    document.getElementById('zoomOutBtn').onclick=()=>document.getElementById('ptzStatus').textContent='Zooming out';
-    document.querySelectorAll('.preset').forEach((btn)=>btn.onclick=()=>document.getElementById('ptzStatus').textContent=`Preset: ${btn.dataset.preset}`);
-    document.addEventListener('keydown',(e)=>{ const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',a:'left',s:'down',d:'right'}; if(m[e.key] && canOperate()){e.preventDefault();startPTZ(m[e.key]);} if(e.key==='Escape') stopPTZ('stopped');});
-    document.addEventListener('keyup',(e)=>['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)&&stopPTZ('stopped'));
-    document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('signInBtn').onclick=()=>document.getElementById('loginModal').classList.add('open');
-    document.getElementById('loginCancel').onclick=()=>{ document.getElementById('loginError').textContent=''; document.getElementById('loginModal').classList.remove('open'); };
-    document.getElementById('loginConfirm').onclick=signIn;
-    document.getElementById('signOutBtn').onclick=signOut;
+    async function requestBoomOpen(){
+      if (!canOperate()) return;
+      const lane = state.lane;
+      const previous = state.laneState[lane].boom;
+      state.laneState[lane].boom = 'Opening';
+      document.getElementById('boomState').textContent = 'Opening';
+      setEvent(`Open request sent for ${lane}`, 'operator action');
+      if (!sb) {
+        setTimeout(() => { state.laneState[lane].boom = 'Open'; if (state.lane === lane) document.getElementById('boomState').textContent = 'Open'; }, 700);
+        return;
+      }
+      const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID, lane } });
+      if (error || data?.error) {
+        state.laneState[lane].boom = previous;
+        if (state.lane === lane) document.getElementById('boomState').textContent = previous;
+        setEvent(`Open request failed in ${lane}`, 'backend response');
+        return;
+      }
+      state.laneState[lane].boom = 'Open';
+      if (state.lane === lane) document.getElementById('boomState').textContent = 'Open';
+    }
+
+    function startPTZ(dir){
+      const cam = cameras[state.selectedCamera];
+      if (!canOperate() || !cam.ptz || dir === 'stop') return stopPTZ('stopped');
+      state.movingDir = dir;
+      document.getElementById('ptzStatus').textContent = `PTZ moving ${dir}`;
+    }
+
+    function stopPTZ(reason = 'stopped'){ state.movingDir = null; document.getElementById('ptzStatus').textContent = `PTZ ${reason}`; }
+
+    function handleApproach(laneTag, source){
+      const unreadId = (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`).slice(0, 12);
+      const plate = (document.getElementById('plateInput').value.trim().toUpperCase() || `UNREAD-${unreadId}`);
+      const alertKey = `${laneTag}:${plate}`;
+      if (state.activeAlertKey === alertKey) return;
+      state.activeAlertKey = alertKey;
+      state.lane = laneTag;
+      updateLaneUI();
+      setEvent('A vehicle has been detected in the', source);
+      startCountdown();
+      startBuzzer();
+      runDriveBySimulation(laneTag);
+      const rec = ensureTruckRecord(plate);
+      renderTruckStatus(plate);
+      if (rec.trust === 'watch') setEvent(`Flagged vehicle ${plate} detected in`, `${source} + trust history`);
+    }
+
+    function captureAnpr(laneTag){
+      const plateInput = document.getElementById('plateInput');
+      const unreadId = (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`).slice(0, 12);
+      const plate = plateInput.value.trim().toUpperCase() || `UNREAD-${unreadId}`;
+      plateInput.value = plate;
+      state.lane = laneTag;
+      const rec = ensureTruckRecord(plate);
+      const still = captureStill(`${laneTag.toUpperCase()} ANPR / Plate`, laneTag);
+      rec.images.push({ camera: still.camera, lane: still.lane, at: still.at, type:'anpr' });
+      rec.lastPlateSeen = stamp();
+      saveDB();
+      renderTruckStatus(plate);
+      setEvent(`ANPR plate ${plate} captured in`, `${laneTag} boom camera`);
+      handleApproach(laneTag, `${laneTag} boom camera`);
+    }
+
+    function escalateGroundCrew(){
+      document.getElementById('groundStatus').textContent = `Ground crew called at ${nowTime()} · amber exception`; 
+      setEvent('Amber escalation sent to on-site ground crew for park-and-inspect', 'exception workflow');
+    }
+
+    cameras.forEach((cam, i) => {
+      const b = document.createElement('button');
+      b.className = 'thumb' + (i === 0 ? ' active' : '');
+      b.textContent = cam.name;
+      b.onclick = () => { state.selectedCamera = i; updateCameraUI(); };
+      document.getElementById('cameraThumbs').appendChild(b);
+    });
+
+    document.getElementById('laneEntry').onclick = () => { state.lane = 'entry'; updateLaneUI(); };
+    document.getElementById('laneExit').onclick = () => { state.lane = 'exit'; updateLaneUI(); };
+    document.querySelectorAll('[data-endpoint]').forEach((btn) => btn.onclick = () => { state.endpoint = btn.dataset.endpoint; updateLaneUI(); });
+
+    document.getElementById('approveBtn').onclick = () => setDecision('approve', '✓ Approved. Boom open request available.');
+    document.getElementById('escalateBtn').onclick = () => { setDecision('escalate', '⚠ Amber exception routed (no hold condition).'); escalateGroundCrew(); };
+    document.getElementById('denyBtn').onclick = () => document.getElementById('denyModal').classList.add('open');
+    document.getElementById('boomRequestBtn').onclick = requestBoomOpen;
+    document.getElementById('denyCancel').onclick = () => document.getElementById('denyModal').classList.remove('open');
+    document.getElementById('denyConfirm').onclick = () => {
+      const reason = document.getElementById('denyReason').value.trim();
+      if (!reason) return;
+      setDecision('deny', `⛔ Denied unsafe: ${reason}`);
+      document.getElementById('denyReason').value = '';
+      document.getElementById('denyModal').classList.remove('open');
+    };
+
+    document.querySelectorAll('.joy-btn').forEach((btn) => {
+      const dir = btn.dataset.dir;
+      btn.addEventListener('pointerdown', (e) => { e.preventDefault(); startPTZ(dir); });
+      btn.addEventListener('pointerup', () => stopPTZ('stopped'));
+      btn.addEventListener('pointercancel', () => stopPTZ('stopped'));
+      btn.addEventListener('mouseleave', () => state.movingDir && stopPTZ('stopped'));
+    });
+    window.addEventListener('blur', () => stopPTZ('stopped'));
+    document.addEventListener('visibilitychange', () => document.hidden && stopPTZ('stopped'));
+    window.addEventListener('pointerup', () => state.movingDir && stopPTZ('stopped'));
+    window.addEventListener('pointercancel', () => stopPTZ('stopped'));
+
+    document.getElementById('zoomInBtn').onclick = () => document.getElementById('ptzStatus').textContent = 'Zooming in';
+    document.getElementById('zoomOutBtn').onclick = () => document.getElementById('ptzStatus').textContent = 'Zooming out';
+    document.querySelectorAll('.preset').forEach((btn) => btn.onclick = () => document.getElementById('ptzStatus').textContent = `Preset: ${btn.dataset.preset}`);
+
+    document.addEventListener('keydown', (e) => {
+      const keyMap = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', w:'up', a:'left', s:'down', d:'right' };
+      if (keyMap[e.key] && canOperate()) { e.preventDefault(); startPTZ(keyMap[e.key]); }
+      if (e.key === 'Escape') stopPTZ('stopped');
+    });
+    document.addEventListener('keyup', (e) => ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key) && stopPTZ('stopped'));
+
     document.getElementById('tempInput').addEventListener('change', updateTempMeta);
+    document.getElementById('plateInput').addEventListener('change', (e) => renderTruckStatus(e.target.value.trim().toUpperCase()));
+    document.getElementById('captureEntryBtn').onclick = () => captureAnpr('entry');
+    document.getElementById('captureExitBtn').onclick = () => captureAnpr('exit');
+    document.getElementById('flagUntruthBtn').onclick = flagTruckStatus;
+
+    document.getElementById('ackAlertBtn').onclick = () => { stopBuzzer(); setEvent('Vehicle approach acknowledged by gatehouse', 'operator acknowledge'); };
+
+    document.getElementById('signInBtn').onclick = () => document.getElementById('loginModal').classList.add('open');
+    document.getElementById('loginCancel').onclick = () => { document.getElementById('loginError').textContent = ''; document.getElementById('loginModal').classList.remove('open'); };
+    document.getElementById('loginConfirm').onclick = signIn;
+    document.getElementById('signOutBtn').onclick = signOut;
+    document.getElementById('menuBtn').onclick = () => document.getElementById('sidebar').classList.toggle('open');
 
     const mobileMode = window.matchMedia('(max-width: 1279px)');
-    function applyMobileReadOnly(){ authState.readOnly = mobileMode.matches; document.querySelector('.advisory').textContent = authState.readOnly ? 'Supervisor read-only mode on narrow screens. AI Assistant remains advisory-only.' : 'AI Assistant is advisory-only for procedures, records, exceptions and system health.'; applyControlLocks(); updateCameraUI(); }
+    function applyMobileReadOnly(){
+      state.auth.readOnly = mobileMode.matches;
+      document.querySelector('.advisory').textContent = state.auth.readOnly
+        ? 'Supervisor read-only mode on narrow screens. AI Assistant remains advisory-only.'
+        : 'AI Assistant is advisory-only for procedures, records, exceptions and system health.';
+      applyControlLocks();
+      updateCameraUI();
+    }
     mobileMode.addEventListener('change', applyMobileReadOnly);
 
     if (sb) {
-      sb.auth.onAuthStateChange((_e,session)=>{
-        const wasSignedIn = authState.signedIn;
+      sb.auth.onAuthStateChange((_e, session) => {
+        const wasSignedIn = state.auth.signedIn;
         updateOperator(session);
         if (!wasSignedIn && session) setEvent('Operator signed in for live workflow', 'auth');
         if (wasSignedIn && !session) setEvent('Operator signed out', 'auth');
       });
-    } else {
-      updateOperator(null);
     }
-    updateLaneUI(); applyMobileReadOnly(); updateTempMeta();
+
+    if (!sb) updateOperator(null);
+    updateLaneUI();
+    updateTempMeta();
+    applyMobileReadOnly();
+    loadWeatherGuidance();
   </script>
 </body>
 </html>
