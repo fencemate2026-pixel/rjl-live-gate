@@ -9,6 +9,9 @@ concurrency:
   group: repo-automation-sync-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -36,7 +39,7 @@ jobs:
           )
 
           for file in "${required_files[@]}"; do
-            test -f "$file"
+            test -f "$file" || { echo "Missing required file: $file"; exit 1; }
           done
 
           python - <<'PY'
@@ -48,9 +51,14 @@ jobs:
           missing = sorted(required.difference(linked))
           if missing:
               raise SystemExit(f"linked-project.json is missing keys: {', '.join(missing)}")
-          PY
 
-          for html in index.html gate.html; do
-            grep -q 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2' "$html"
-            grep -q 'https://nwyrnezyzelsfvxascgf.supabase.co' "$html"
-          done
+          expected_script = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+          expected_url = f"https://{linked['ref']}.supabase.co"
+
+          for html_name in ("index.html", "gate.html"):
+              html = Path(html_name).read_text()
+              if expected_script not in html:
+                  raise SystemExit(f"{html_name} is missing the expected Supabase client script")
+              if expected_url not in html:
+                  raise SystemExit(f"{html_name} is missing the expected Supabase project URL: {expected_url}")
+          PY
