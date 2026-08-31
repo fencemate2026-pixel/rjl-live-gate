@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RJL Live Gate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+  :root{
+    --navy:#13284B; --steel:#24477E; --orange:#FF6B00; --orange-d:#E85D00;
+    --ink:#16202E; --muted:#64748B; --line:#E4E9F0; --bg:#EEF2F7; --tint:#F4F8FD;
+    --card:#FFFFFF; --ready:#16A34A; --disp:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .appbar{ position:sticky; top:0; z-index:50; background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .bar-inner{ max-width:480px; margin:0 auto; padding:.7rem 1.1rem; display:flex; align-items:center; }
+  .brand img{ height:38px; width:auto; display:block; border-radius:8px; }
+  .wrap{ max-width:480px; margin:0 auto; padding:1.2rem 1.1rem 3rem; }
+  .hidden, .hidden-status{ display:none; }
+  .login-card{ margin-top:1.4rem; }
+  .login-h{ font:800 1.45rem var(--disp); color:var(--navy); margin-bottom:.25rem; }
+  .login-sub{ color:var(--muted); font-size:.92rem; margin-bottom:1.2rem; }
+  .field{ margin-bottom:.7rem; }
+  input{ width:100%; padding:.85rem .9rem; border:1px solid var(--line); border-radius:11px;
+    background:#fff; color:var(--ink); font-size:1rem; font-family:inherit; }
+  input:focus{ outline:none; border-color:var(--steel); box-shadow:0 0 0 3px rgba(36,71,126,.12); }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:1.2rem; }
+  .btn{ width:100%; padding:1rem; font:800 1.1rem var(--disp); letter-spacing:.02em; color:#fff;
+    border:none; border-radius:13px; cursor:pointer;
+    background:linear-gradient(180deg,var(--orange),var(--orange-d));
+    box-shadow:0 8px 20px rgba(255,107,0,.28); transition:transform .08s,box-shadow .2s; }
+  .btn:active{ transform:scale(.98); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; }
+  .btn:focus-visible,.ghost:focus-visible{ outline:3px solid rgba(36,71,126,.28); outline-offset:3px; }
+  .btn.busy{ color:transparent; position:relative; }
+  .btn.busy::after{ content:""; position:absolute; inset:0; margin:auto; width:20px; height:20px;
+    border:3px solid rgba(255,255,255,.45); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .ghost{ background:none; border:1px solid var(--line); color:var(--muted);
+    font:700 .8rem var(--disp); padding:.5rem .85rem; border-radius:10px; cursor:pointer; }
+  .welcome{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.1rem; }
+  .hello{ font:800 1.5rem var(--disp); color:var(--navy); line-height:1.1; }
+  .sub{ color:var(--muted); font-size:.9rem; margin-top:.2rem; }
+  .statusbar{ display:flex; gap:.6rem; margin-bottom:1.1rem; }
+  .spill{ flex:1; display:flex; align-items:center; gap:.55rem; background:var(--card);
+    border:1px solid var(--line); border-radius:12px; padding:.72rem .9rem; }
+  .spill .k{ font:700 .67rem var(--disp); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+  .spill .v{ margin-left:auto; font:700 .92rem var(--disp); }
+  .dot{ width:11px; height:11px; border-radius:50%; flex:none; }
+  .dot.ok{ background:var(--ready); box-shadow:0 0 0 4px rgba(22,163,74,.16); }
+  .dot.off{ background:#d92d20; box-shadow:0 0 0 4px rgba(217,45,32,.16); }
+  .dot.idle{ background:#9aa7b8; box-shadow:0 0 0 4px rgba(154,167,184,.16); }
+  .terminal{ position:relative; background:linear-gradient(180deg,#0f2546,#13284B); color:#fff;
+    border-radius:16px; padding:1.1rem 1.2rem; margin-bottom:1.1rem; overflow:hidden; }
+  .terminal::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--orange); }
+  .term-top{ display:flex; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+  .term-label{ font:700 .64rem var(--disp); text-transform:uppercase; letter-spacing:.14em; color:#9fb4d6; }
+  .pulse{ width:8px; height:8px; border-radius:50%; background:#34d399; animation:pulse 1.8s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)} 70%{box-shadow:0 0 0 8px rgba(52,211,153,0)} 100%{box-shadow:0 0 0 0 rgba(52,211,153,0)} }
+  .term-time{ font:700 2rem var(--mono); letter-spacing:.02em; line-height:1; }
+  .term-date{ color:#bcd0ef; font-size:.85rem; margin-top:.25rem; }
+  #wx{ margin-top:.7rem; display:flex; flex-direction:column; gap:.1rem; }
+  #wx .t{ font:700 .95rem var(--disp); } #wx .c{ color:#9fb4d6; font-size:.78rem; }
+  .gate-card{ text-align:center; margin-bottom:1.1rem; }
+  .gate-frame{ display:flex; align-items:flex-end; justify-content:center; gap:8px; height:64px; margin-bottom:1rem; }
+  .post{ width:9px; height:60px; background:linear-gradient(180deg,#9fb0c8,#6b7d97); border-radius:3px; }
+  .gate-panel{ width:140px; height:44px; align-self:center; border-radius:5px;
+    background:repeating-linear-gradient(90deg,#cdd7e6 0 8px,#bcc8db 8px 16px); border:1px solid #aab8cd; }
+  #gate-status{ font:700 1.05rem var(--disp); margin-bottom:1rem; color:var(--ink); }
+  .panel-h{ font:700 .68rem var(--disp); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:1.2rem 0 .55rem; }
+  .tiles{ display:grid; grid-template-columns:repeat(3,1fr); gap:.55rem; }
+  .tile{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:0 .45rem .85rem; overflow:hidden; text-align:center; }
+  .tile .top{ height:4px; margin:0 -.45rem .8rem; background:linear-gradient(90deg,var(--orange),var(--orange-d)); }
+  .tile .k{ font:700 .56rem var(--disp); text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .tile .v{ font:700 1.15rem var(--mono); color:var(--navy); margin:.35rem 0 .5rem; line-height:1; }
+  .tile .chip{ display:inline-block; font:700 .5rem var(--disp); letter-spacing:.05em; padding:.18rem .4rem; border-radius:999px; background:var(--tint); color:var(--muted); border:1px solid var(--line); }
+  #log{ margin-top:1rem; background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:.9rem 1rem; font:500 .78rem var(--mono); color:var(--muted); max-height:160px; overflow-y:auto; }
+  #log:empty{ display:none; }
+  #log div{ padding:.12rem 0; }
+  #log .success{ color:#15803d; } #log .error{ color:#b42318; }
+  .eyebrow{ color:var(--orange-d); font:700 .68rem var(--disp); letter-spacing:.14em; text-transform:uppercase; margin-bottom:.4rem; }
+  .fineprint{ color:var(--muted); font-size:.75rem; line-height:1.5; margin-top:1rem; text-align:center; }
+  @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; } }
+  </style>
+</head>
+<body>
+  <header class="appbar"><div class="bar-inner"><span class="brand"><img src="rjl-logo-transparent.png" alt="RJL Commercial"></span></div></header>
+
+  <div class="wrap">
+
+    <div id="status-bar" class="hidden-status">Please sign in</div>
+
+    <!-- LOGIN -->
+    <form id="login" class="card login-card">
+      <p class="eyebrow">Secure access</p>
+      <h2 class="login-h">Gate access</h2>
+      <p class="login-sub">Sign in to your RJL gate portal</p>
+      <div class="field"><input id="email" type="email" placeholder="Email" aria-label="Email address" autocomplete="username" required></div>
+      <div class="field"><input id="pass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" required></div>
+      <button class="btn" id="btn-login" type="submit">SIGN IN</button>
+      <p class="fineprint">Authorized users only. Access requests are securely verified before the gate command is sent.</p>
+    </form>
+
+    <!-- CONTROL -->
+    <section id="control" class="hidden">
+      <div class="welcome">
+        <div>
+          <h1 class="hello">Hello <span id="who">there</span></h1>
+          <p class="sub">16 Aberfeldie St, Aberfeldie</p>
+        </div>
+        <button class="ghost" type="button" onclick="signOut()">Sign out</button>
+      </div>
+
+      <div class="statusbar">
+        <div class="spill" id="st-service"><span class="dot idle"></span><span class="k">Service</span><span class="v">&mdash;</span></div>
+      </div>
+
+      <div class="terminal">
+        <div class="term-top"><span class="term-label">Local time</span><span class="pulse"></span></div>
+        <div class="term-time" id="time">--:--</div>
+        <div class="term-date" id="date"></div>
+        <div id="wx"><span class="c">loading…</span></div>
+      </div>
+
+      <div class="card gate-card">
+        <div class="gate-frame"><div class="post"></div><div class="gate-panel"></div><div class="post"></div></div>
+        <div id="gate-status" role="status" aria-live="polite">Checking gate&hellip;</div>
+        <button class="btn" id="btn-open" type="button" onclick="openGate()" disabled>OPEN&nbsp;GATE</button>
+      </div>
+
+      <div class="panel-h">Your activity</div>
+      <div class="tiles">
+        <div class="tile" id="st-lastopen"><div class="top"></div><div class="k">Last opened</div><div class="v">&mdash;</div><span class="chip">NONE YET</span></div>
+        <div class="tile" id="st-opens"><div class="top"></div><div class="k">Opens today</div><div class="v">0</div><span class="chip">THIS PHONE</span></div>
+        <div class="tile" id="st-opens7"><div class="top"></div><div class="k">Opens 7d</div><div class="v">0</div><span class="chip">THIS PHONE</span></div>
+      </div>
+    </section>
+
+    <div id="log" role="status" aria-live="polite"></div>
+
+  </div>
+
+  <script>
+    // Public values only. No secret, no broker creds.
+    const SUPABASE_URL  = "https://nwyrnezyzelsfvxascgf.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eXJuZXp5emVsc2Z2eGFzY2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDc0MzksImV4cCI6MjA5Nzc4MzQzOX0.9qxqrbaaeAWwtpVGDO5w4clmfbG_QWh63dMWlQuD2FE";
+    const GATE_ID       = "demo-0001";
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const logEl = document.getElementById('log');
+    const log = (message, type = '') => {
+      const row = document.createElement('div');
+      row.className = type;
+      row.textContent = `${new Date().toLocaleTimeString()} — ${message}`;
+      logEl.prepend(row);
+    };
+
+    function setBusy(button, busy) {
+      button.disabled = busy;
+      button.classList.toggle('busy', busy);
+      button.setAttribute('aria-busy', String(busy));
+    }
+
+    function showControl() {
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('control').classList.remove('hidden');
+      document.getElementById('status-bar').textContent = '\u{1F7E2} Signed in';
+    }
+    function showLogin() {
+      document.getElementById('control').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+      document.getElementById('status-bar').textContent = 'Please sign in';
+    }
+
+    async function loadStatus() {
+      try {
+        const { data, error } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
+        const el = document.getElementById('gate-status');
+        const openButton = document.getElementById('btn-open');
+        if (error || !data) {
+          el.textContent = 'Gate status unavailable';
+          el.style.color = '#b42318';
+          openButton.disabled = true;
+          return;
+        }
+        const s = data.service_status;
+        el.textContent = s === 'suspended' ? 'Service suspended' : 'Gate ready';
+        el.style.color = s === 'suspended' ? '#b42318' : '#15803d';
+        openButton.disabled = (s === 'suspended');
+      } catch (e) {
+        document.getElementById('gate-status').textContent = 'Gate status unavailable';
+        document.getElementById('btn-open').disabled = true;
+      }
+    }
+
+    async function signIn() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('pass').value;
+      const button = document.getElementById('btn-login');
+      if (!email || !password) { log('Enter your email and password', 'error'); return; }
+      log('Signing in...');
+      setBusy(button, true);
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { log('Sign-in failed: ' + error.message, 'error'); return; }
+        log('Signed in securely', 'success');
+        showControl();          // direct switch on success, no session re-lookup
+        loadStatus();
+      } catch (e) { log('Sign-in error: ' + (e.message || e), 'error'); }
+      finally { setBusy(button, false); }
+    }
+
+    async function signOut() {
+      try { await sb.auth.signOut(); } catch (e) {}
+      showLogin();
+    }
+
+    async function openGate() {
+      const button = document.getElementById('btn-open');
+      log('Opening...');
+      setBusy(button, true);
+      try {
+        const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID } });
+        if (error) { log('Open failed: ' + (error.message || error), 'error'); return; }
+        if (data && data.error) { log('Open refused: ' + data.error, 'error'); return; }
+        log('Gate command sent', 'success');
+      } catch (e) { log('Open error: ' + (e.message || e), 'error'); }
+      finally {
+        window.setTimeout(() => {
+          button.classList.remove('busy');
+          button.removeAttribute('aria-busy');
+          loadStatus();
+        }, 1200);
+      }
+    }
+
+    // On load: restore an existing session if there is one, otherwise show login.
+    (async () => {
+      try {
+        const { data:{ session } } = await sb.auth.getSession();
+        if (session) { showControl(); loadStatus(); } else { showLogin(); }
+      } catch (e) { showLogin(); }
+    })();
+
+    document.getElementById('login').addEventListener('submit', (event) => {
+      event.preventDefault();
+      signIn();
+    });
+  </script>
+
+  <script>
+  /* Live clock + weather + status mirror + this-phone opens.
+     ADDITIVE and READ-ONLY: the Supabase auth/open/status engine above is untouched.
+     Everything is wrapped in try/catch, so a failure here can NEVER stop the gate opening. */
+  (function(){
+    try{
+      var $=function(id){return document.getElementById(id);};
+
+      function clock(){
+        try{
+          var d=new Date();
+          var t=$('time'); if(t) t.textContent=d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit',hour12:true}).toLowerCase();
+          var dd=$('date'); if(dd) dd.textContent=d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+        }catch(e){}
+      }
+      clock(); setInterval(clock,1000);
+
+      var WX_LAT=-37.7589, WX_LON=144.8975, WX_PLACE="Aberfeldie";
+      var WMAP={0:['☀️','Clear'],1:['🌤️','Mainly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌦️','Drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Snow'],80:['🌦️','Showers'],81:['🌦️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorm']};
+      (async function(){
+        try{
+          var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+WX_LAT+'&longitude='+WX_LON+'&current=temperature_2m,weather_code&timezone=auto');
+          var j=await r.json(); var c=j&&j.current; if(!c) return;
+          var wc=WMAP[c.weather_code]||['🌡️','—']; var el=$('wx');
+          if(el) el.innerHTML='<span class="t">'+wc[0]+' '+Math.round(c.temperature_2m)+'°C</span><span class="c">'+wc[1]+' · '+WX_PLACE+'</span>';
+        }catch(e){ var el=$('wx'); if(el) el.innerHTML='<span class="c">Weather unavailable</span>'; }
+      })();
+
+      (async function(){
+        try{
+          if(typeof sb==='undefined'||!sb.auth) return;
+          var s=await sb.auth.getSession();
+          var em=s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.email;
+          if(em){ var nm=em.split('@')[0].split(/[._-]/)[0]; nm=nm.charAt(0).toUpperCase()+nm.slice(1);
+            var w=$('who'); if(w) w.textContent=nm; }
+        }catch(e){}
+      })();
+
+      function syncService(){
+        try{ var gs=$('gate-status'), p=$('st-service'); if(!gs||!p) return;
+          var t=(gs.textContent||'').toLowerCase(), dot=p.querySelector('.dot'), v=p.querySelector('.v');
+          if(t.indexOf('suspend')>-1){dot.className='dot off';v.textContent='Suspended';v.style.color='#d92d20';}
+          else if(t.indexOf('active')>-1){dot.className='dot ok';v.textContent='Active';v.style.color='#15803d';}
+          else {dot.className='dot idle';v.textContent='—';v.style.color='';}
+        }catch(e){}
+      }
+
+      var KEY='rjlgate.opens';
+      function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return[];}}
+      function save(a){try{localStorage.setItem(KEY,JSON.stringify(a.slice(-300)));}catch(e){}}
+      function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+      function renderOpens(){
+        try{var a=load(),now=new Date();
+          var td=a.filter(function(t){return sameDay(new Date(t),now);}).length;
+          var wk=a.filter(function(t){return (now-new Date(t))<=6048e5;}).length;
+          var lo=$('st-lastopen'); if(lo){var v=lo.querySelector('.v'),c=lo.querySelector('.chip');
+            if(a.length){var d=new Date(a[a.length-1]);v.textContent=d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});if(c)c.textContent=sameDay(d,now)?'TODAY':d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});}
+            else{v.textContent='—';if(c)c.textContent='NONE YET';}}
+          var o=$('st-opens'); if(o)o.querySelector('.v').textContent=String(td);
+          var o7=$('st-opens7'); if(o7)o7.querySelector('.v').textContent=String(wk);
+        }catch(e){}
+      }
+      function recordOpen(){try{var a=load();a.push(Date.now());save(a);renderOpens();}catch(e){}}
+
+      renderOpens(); syncService();
+      if(window.MutationObserver){
+        var gs=$('gate-status'); if(gs) new MutationObserver(syncService).observe(gs,{childList:true,characterData:true,subtree:true});
+        var lg=$('log'); if(lg) new MutationObserver(function(muts){try{muts.forEach(function(m){(m.addedNodes||[]).forEach(function(n){if(((n.textContent||'').toLowerCase()).indexOf('open sent ok')>-1)recordOpen();});});}catch(e){}}).observe(lg,{childList:true});
+      }
+      setTimeout(syncService,1500);
+    }catch(e){ /* never break the page */ }
+  })();
+  </script>
+</body>
+</html>
