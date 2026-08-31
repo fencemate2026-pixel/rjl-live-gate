@@ -311,7 +311,7 @@
     function nowTime(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
     function stamp(){ return new Date().toISOString(); }
     function saveDB(){ localStorage.setItem('rjl.truckDB', JSON.stringify(state.truckDB)); localStorage.setItem('rjl.personDB', JSON.stringify(state.personDB)); }
-    function sanitizeText(v){ return (v || '').replace(/[\x00-\x1F\x7F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(); }
+    function sanitizeText(v){ return (v || '').replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(); }
     function normalizePlate(v){ return sanitizeText(v).replace(/[^A-Za-z0-9-]/g, '').toUpperCase(); }
 
     function canOperate(){ return !state.auth.readOnly && state.auth.signedIn && !state.auth.suspended; }
