@@ -312,6 +312,9 @@
     function stamp(){ return new Date().toISOString(); }
     function saveDB(){ localStorage.setItem('rjl.truckDB', JSON.stringify(state.truckDB)); localStorage.setItem('rjl.personDB', JSON.stringify(state.personDB)); }
     function sanitizeText(v){ return (v || '').replace(/[\x00-\x1F\x7F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(); }
+    function sanitizeHtmlText(v){
+      return sanitizeText(v).replace(/[&<>"']/g, (ch) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+    }
     function normalizePlate(v){ return sanitizeText(v).replace(/[^A-Za-z0-9-]/g, '').toUpperCase(); }
 
     function canOperate(){ return !state.auth.readOnly && state.auth.signedIn && !state.auth.suspended; }
@@ -432,8 +435,8 @@
     function attachCurrentToRecords(decisionType){
       const plate = normalizePlate(document.getElementById('plateInput').value);
       const driver = sanitizeText(document.getElementById('driverInput').value) || 'unknown-driver';
-      const userInfo = sanitizeText(document.getElementById('userInfoInput').value) || 'unspecified';
-      const operatorOpinion = sanitizeText(document.getElementById('opinionInput').value) || '';
+      const userInfo = sanitizeHtmlText(document.getElementById('userInfoInput').value) || 'unspecified';
+      const operatorOpinion = sanitizeHtmlText(document.getElementById('opinionInput').value) || '';
       if (!plate) return;
       const checklist = Array.from(document.querySelectorAll('#checklist .checklist-item')).map((row, idx) => ({ item: checklistOrder[idx], complete: row.querySelector('input[type="checkbox"]').checked }));
       const tempValue = Number(document.getElementById('tempInput').value || 0);
@@ -441,9 +444,9 @@
       const truckRec = ensureTruckRecord(plate);
       const stillRefs = state.stills.slice(0, 6).map((s) => ({ camera:s.camera, lane:s.lane, at:s.at }));
       truckRec.images.push(...stillRefs);
-      truckRec.checklists.push({ at, lane: state.lane, decision: decisionType, temp: tempValue, user_info: userInfo, operator_opinion: operatorOpinion, checklist });
+      truckRec.checklists.push({ at, lane: state.lane, decision: decisionType, temp: tempValue, userInfo, operatorOpinion, checklist });
       if (!state.personDB[driver]) state.personDB[driver] = { checklists:[] };
-      state.personDB[driver].checklists.push({ at, lane: state.lane, truck: plate, decision: decisionType, temp: tempValue, user_info: userInfo, operator_opinion: operatorOpinion, checklist });
+      state.personDB[driver].checklists.push({ at, lane: state.lane, truck: plate, decision: decisionType, temp: tempValue, userInfo, operatorOpinion, checklist });
       saveDB();
       document.getElementById('recordLinks').textContent = `Linked to truck ${plate} and person ${driver}. User info ${userInfo !== 'unspecified' ? 'saved' : 'not provided'}. Opinion note ${operatorOpinion ? 'saved' : 'empty'}. Images attached: ${stillRefs.length}.`;
     }
