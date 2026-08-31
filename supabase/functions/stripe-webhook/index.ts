@@ -32,8 +32,8 @@ async function verifyStripeSignature(body: string, signatureHeader: string): Pro
   const signatures = parts.filter((part) => part.startsWith("v1=")).map((part) => part.slice(3));
   if (!timestamp || signatures.length === 0) return false;
 
-  const age = Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp));
-  if (!Number.isFinite(age) || age > 300) return false;
+  const age = Math.floor(Date.now() / 1000) - Number(timestamp);
+  if (!Number.isFinite(age) || age < -60 || age > 300) return false;
 
   const signedPayload = `${timestamp}.${body}`;
   const expected = await hmacHex(secret, signedPayload);

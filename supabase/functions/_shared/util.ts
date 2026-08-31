@@ -65,8 +65,8 @@ export function timingSafeEqual(a: string, b: string): boolean {
   const max = Math.max(aBytes.length, bBytes.length);
   diff |= aBytes.length !== bBytes.length ? 1 : 0;
   for (let i = 0; i < max; i++) {
-    const av = i < aBytes.length ? aBytes[i] : 0xff;
-    const bv = i < bBytes.length ? bBytes[i] : 0xff;
+    const av = i < aBytes.length ? aBytes[i] : 0x00;
+    const bv = i < bBytes.length ? bBytes[i] : 0x00;
     diff |= av ^ bv;
   }
   return diff === 0;
@@ -81,7 +81,7 @@ export async function mqttPublish(topic: string, payload: string, retain = false
     password: requiredEnv("HIVEMQ_PASS"),
     clientId: "rjl-fn-" + crypto.randomUUID().slice(0, 8),
     clean: true,
-    connectTimeout: 8000,
+    connectTimeout: 6000,
     protocolVersion: 4,
   });
 
