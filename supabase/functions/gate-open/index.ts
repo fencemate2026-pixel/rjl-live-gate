@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   const db = admin();
 
   const { data: link, error: linkError } = await db.from("gate_users")
-    .select("id")
+    .select("gate_id")
     .eq("gate_id", gateId)
     .eq("user_id", user.id)
     .maybeSingle();

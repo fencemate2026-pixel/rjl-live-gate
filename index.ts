@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
 
   // Is this user allowed on this gate?
   const { data: link } = await db.from("gate_users")
-    .select("id").eq("gate_id", gateId).eq("user_id", user.id).maybeSingle();
+    .select("gate_id").eq("gate_id", gateId).eq("user_id", user.id).maybeSingle();
   if (!link) return json({ error: "forbidden" }, 403);
 
   // Suspended gates can't be opened from the app.
