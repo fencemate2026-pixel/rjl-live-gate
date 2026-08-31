@@ -4,6 +4,7 @@ import {
   admin,
   cors,
   getGateSecret,
+  hmacHex,
   json,
   publishHold,
   requiredEnv,
@@ -35,16 +36,7 @@ async function verifyStripeSignature(body: string, signatureHeader: string): Pro
   if (!Number.isFinite(age) || age > 300) return false;
 
   const signedPayload = `${timestamp}.${body}`;
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const raw = await crypto.subtle.sign("HMAC", key, enc.encode(signedPayload));
-  const expected = [...new Uint8Array(raw)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const expected = await hmacHex(secret, signedPayload);
   return signatures.some((sig) => timingSafeEqual(sig, expected));
 }
 

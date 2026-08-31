@@ -50,8 +50,9 @@ export async function hmacHex(secret: string, msg: string): Promise<string> {
 }
 
 export function timingSafeEqual(a: string, b: string): boolean {
-  let diff = a.length ^ b.length;
+  let diff = 0;
   const max = Math.max(a.length, b.length);
+  diff |= a.length !== b.length ? 1 : 0;
   for (let i = 0; i < max; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
   return diff === 0;
 }
