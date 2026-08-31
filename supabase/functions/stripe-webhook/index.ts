@@ -2,7 +2,7 @@
 // Deploy: supabase functions deploy stripe-webhook --no-verify-jwt
 import {
   admin,
-  cors,
+  corsHeaders,
   getGateSecret,
   hmacHex,
   json,
@@ -65,30 +65,31 @@ function deriveAction(eventType: string, object: EventObject):
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method !== "POST") return json({ error: "method not allowed" }, 405, origin);
 
   const signatureHeader = req.headers.get("stripe-signature");
-  if (!signatureHeader) return json({ error: "missing stripe-signature" }, 400);
+  if (!signatureHeader) return json({ error: "missing stripe-signature" }, 400, origin);
 
   const body = await req.text();
   const valid = await verifyStripeSignature(body, signatureHeader);
-  if (!valid) return json({ error: "invalid stripe signature" }, 400);
+  if (!valid) return json({ error: "invalid stripe signature" }, 400, origin);
 
   let event: EventObject;
   try {
     event = JSON.parse(body);
   } catch {
-    return json({ error: "invalid json" }, 400);
+    return json({ error: "invalid json" }, 400, origin);
   }
 
   const eventType = maybeString(event.type);
   const object = asRecord(asRecord(event.data)?.object);
-  if (!eventType || !object) return json({ error: "invalid event payload" }, 400);
+  if (!eventType || !object) return json({ error: "invalid event payload" }, 400, origin);
 
   const action = deriveAction(eventType, object);
   if (!action) {
-    return json({ ok: true, ignored: true, event_type: eventType });
+    return json({ ok: true, ignored: true, event_type: eventType }, 200, origin);
   }
 
   const db = admin();
@@ -96,20 +97,20 @@ Deno.serve(async (req) => {
     .select("id, service_status, plan")
     .eq("stripe_subscription_id", action.subscriptionId)
     .maybeSingle();
-  if (gateLookupError) return json({ error: "gate lookup failed", detail: gateLookupError.message }, 500);
-  if (!gate) return json({ ok: true, ignored: true, reason: "subscription not linked to gate" });
+  if (gateLookupError) return json({ error: "gate lookup failed", detail: gateLookupError.message }, 500, origin);
+  if (!gate) return json({ ok: true, ignored: true, reason: "subscription not linked to gate" }, 200, origin);
   if (gate.plan !== "maintenance") {
-    return json({ ok: true, ignored: true, reason: "gate is not on maintenance plan" });
+    return json({ ok: true, ignored: true, reason: "gate is not on maintenance plan" }, 200, origin);
   }
 
   const secret = await getGateSecret(db, gate.id);
-  if (!secret) return json({ error: "gate secret missing" }, 500);
+  if (!secret) return json({ error: "gate secret missing" }, 500, origin);
 
   try {
     await publishHold(gate.id, secret, action.hold);
     await updateGateServiceStatus(db, gate.id, action.serviceStatus);
   } catch (e) {
-    return json({ error: "failed to sync gate state", detail: (e as Error).message }, 502);
+    return json({ error: "failed to sync gate state", detail: (e as Error).message }, 502, origin);
   }
 
   return json({
@@ -118,5 +119,5 @@ Deno.serve(async (req) => {
     service_status: action.serviceStatus,
     hold: action.hold,
     reason: action.reason,
-  });
+  }, 200, origin);
 });

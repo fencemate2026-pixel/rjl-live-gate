@@ -31,12 +31,14 @@ setup.sql                   schema: plan/status/stripe cols + locked secret tabl
 3. Set secrets (SUPABASE_URL / keys are injected automatically — don't set those):
    ```
    supabase secrets set \
+     ALLOWED_ORIGINS=https://your-gate-app.example.com,https://your-preview-app.example.com \
      HIVEMQ_HOST=71efb01a3c524802bcb0914de069ddf0.s1.eu.hivemq.cloud \
      HIVEMQ_USER=RJLCOMMERCIAL \
      HIVEMQ_PASS='Alebakis1!' \
      STRIPE_SECRET_KEY=sk_live_xxx \
      STRIPE_WEBHOOK_SECRET=whsec_xxx
    ```
+   `ALLOWED_ORIGINS` should list the exact front-end origins allowed to call `gate-open`.
 4. Deploy:
    ```
    supabase functions deploy stripe-webhook --no-verify-jwt

@@ -1,16 +1,24 @@
 // Shared helpers for RJL gate Edge Functions.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-export const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+export function corsHeaders(origin: string | null = null): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+  const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (origin && allowedOrigins.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
+}
 
-export function json(body: unknown, status = 200) {
+export function json(body: unknown, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, "content-type": "application/json" },
+    headers: { ...corsHeaders(origin), "content-type": "application/json" },
   });
 }
 
@@ -50,10 +58,17 @@ export async function hmacHex(secret: string, msg: string): Promise<string> {
 }
 
 export function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
   let diff = 0;
-  const max = Math.max(a.length, b.length);
-  diff |= a.length !== b.length ? 1 : 0;
-  for (let i = 0; i < max; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  const max = Math.max(aBytes.length, bBytes.length);
+  diff |= aBytes.length !== bBytes.length ? 1 : 0;
+  for (let i = 0; i < max; i++) {
+    const av = i < aBytes.length ? aBytes[i] : 0xff;
+    const bv = i < bBytes.length ? bBytes[i] : 0xff;
+    diff |= av ^ bv;
+  }
   return diff === 0;
 }
 
