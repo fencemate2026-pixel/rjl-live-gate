@@ -332,6 +332,7 @@
       document.getElementById('denyBtn').disabled = !allowed;
       document.getElementById('boomRequestBtn').disabled = !allowed || state.laneState[state.lane].decisionType !== 'approve';
       document.querySelectorAll('.intercom-controls .btn,.intercom-active [data-endpoint]').forEach((el) => { el.disabled = !allowed; });
+      document.querySelectorAll('#captureEntryBtn,#captureExitBtn,#flagUntruthBtn,#ackAlertBtn').forEach((el) => { el.disabled = !allowed; });
       document.getElementById('signInBtn').disabled = state.auth.readOnly || state.auth.signedIn;
       document.getElementById('signOutBtn').disabled = state.auth.readOnly || !state.auth.signedIn;
       document.getElementById('authStatus').textContent = !sb
