@@ -24,9 +24,15 @@ alter table public.gates
   add column if not exists stripe_subscription_id text,
   add column if not exists created_at timestamptz not null default now();
 
+update public.gates
+set plan = coalesce(plan, 'standard'),
+    service_status = coalesce(service_status, 'active');
+
 alter table public.gates
   alter column plan set default 'standard',
-  alter column service_status set default 'active';
+  alter column service_status set default 'active',
+  alter column plan set not null,
+  alter column service_status set not null;
 
 do $$
 begin
