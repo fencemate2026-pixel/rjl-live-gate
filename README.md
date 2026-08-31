@@ -12,7 +12,7 @@ Automation:
 - GitHub Actions runs `.github/workflows/repo-automation-sync.yml` on pushes and pull requests to keep the core project files and hosted app configuration in sync.
 
 Hosting target:
-- Front-end hosting is now kept in-repo for the Vercel project `hawk-rgp-operator`.
+- Front-end hosting is now kept in-repo for the Vercel project `hawklogisticslavdemo`.
 
 Per-unit at the bench: set GATE_ID + HMAC_SECRET in the .ino, add the matching
 row in gates + gate_secrets, generate that client's gate.html config, flash.

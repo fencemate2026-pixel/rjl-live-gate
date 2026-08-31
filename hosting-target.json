@@ -1,8 +1,8 @@
 {
   "provider": "vercel",
   "teamSlug": "fencemate2026-pixels-projects",
-  "projectSlug": "hawk-rgp-operator",
-  "projectUrl": "https://vercel.com/fencemate2026-pixels-projects/hawk-rgp-operator",
+  "projectSlug": "hawklogisticslavdemo",
+  "projectUrl": "https://vercel.com/fencemate2026-pixels-projects/hawklogisticslavdemo",
   "productionEntryPoints": [
     "index.html",
     "gate.html",
