@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RJL Live Gate — Phase 1 Proposal Revision</title>
+  <style>
+    :root{
+      --navy:#13284b;
+      --ink:#16202e;
+      --muted:#5b6b80;
+      --line:#d9e2ec;
+      --bg:#eef3f8;
+      --card:#ffffff;
+      --accent:#ff6b00;
+      --accent-soft:#fff1e8;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.5;
+    }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:32px 20px 56px;
+    }
+    h1,h2,h3{color:var(--navy);margin:0 0 12px}
+    h1{font-size:2rem}
+    h2{font-size:1.3rem;margin-top:28px}
+    h3{font-size:1rem;margin-top:18px}
+    p{margin:0 0 12px}
+    .lead,.note{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:18px;
+    }
+    .note{
+      background:var(--accent-soft);
+      border-color:#ffd2ba;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+    }
+    ul{margin:0;padding-left:18px}
+    li{margin:0 0 8px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+    th,td{
+      text-align:left;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+    }
+    th{
+      background:#f8fbfe;
+      color:var(--navy);
+    }
+    tr:last-child td{border-bottom:none}
+    .pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#edf4ff;
+      color:var(--navy);
+      font-size:.82rem;
+      font-weight:700;
+      margin-bottom:10px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="lead">
+      <span class="pill">Phase 1 only</span>
+      <h1>RJL Live Gate — Revised Phase 1 Proposal</h1>
+      <p>This revision is limited to Phase 1 scope only and removes future-enhancement-led items from the committed delivery scope unless separately approved later.</p>
+      <p>The purpose of Phase 1 is to deliver an operational gate-control and evidence-capture foundation that satisfies current site, operational and compliance needs without adding cost for future-only capabilities.</p>
+    </section>
+
+    <section class="note">
+      <h2>AI position</h2>
+      <p>This revision keeps the system future-compatible with possible AI-led enhancements, but Phase 1 does not include dedicated AI inspection, AI damage comparison, ANPR, thermal imaging, GPS tracking or other future enhancement capability unless separately approved in a later phase.</p>
+    </section>
+
+    <h2>Executive decision requested</h2>
+    <div class="card">
+      <p>Approval is sought to progress Phase 1 measured survey, detailed design and stakeholder confirmation only.</p>
+      <ul>
+        <li>No approval is requested at this stage for future enhancement functionality.</li>
+        <li>No approval is requested at this stage for procurement or construction beyond the Phase 1 scope confirmed through detailed design.</li>
+        <li>Progress through this stage does not in itself create an obligation for Hawk to award later implementation works to RJL.</li>
+      </ul>
+    </div>
+
+    <h2>Scope split</h2>
+    <div class="grid">
+      <section class="card">
+        <h3>Phase 1 — Required</h3>
+        <ul>
+          <li>Measured survey and detailed design for the current gate-control requirement.</li>
+          <li>Gate operating workflow, status logic and exception handling for current operational use.</li>
+          <li>Current-condition image capture where required for present operational or evidentiary needs.</li>
+          <li>Civil, electrical, communications and mounting works required for approved Phase 1 devices only.</li>
+          <li>Testing, commissioning, training and handover for the approved Phase 1 system.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Phase 1 — Optional</h3>
+        <ul>
+          <li>Optional items may be included only where they support a current Phase 1 operational, safety or compliance need.</li>
+          <li>Optional items must be identified separately from required scope and costed separately for decision.</li>
+          <li>Any optional item remains subject to detailed design confirmation.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Future phases — Not included</h3>
+        <ul>
+          <li>ANPR.</li>
+          <li>AI damage comparison or advanced vehicle-condition analytics.</li>
+          <li>Dedicated AI inspection hardware.</li>
+          <li>Thermal imaging.</li>
+          <li>GPS or other enhancement-led technology not required for current Phase 1 operation.</li>
+        </ul>
+      </section>
+    </div>
+
+    <h2>Design basis and quantity treatment</h2>
+    <div class="card">
+      <p>Quantities identified below are to be treated as preliminary design allowances pending measured survey and detailed design. They are not to be interpreted as fixed procurement quantities until the Phase 1 coverage, safety and infrastructure requirements are confirmed.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Current treatment in this revision</th>
+          <th>Phase 1 basis required before final issue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Wide-angle / inspection cameras</td>
+          <td>Retained only as preliminary Phase 1 image-capture allowance.</td>
+          <td>Operational purpose, entry/exit coverage, vehicle/trailer coverage, blind spots and night coverage.</td>
+        </tr>
+        <tr>
+          <td>mmWave radars</td>
+          <td>Retained only where they address a current advisory requirement in Phase 1.</td>
+          <td>Specific advisory function, location logic and reason the current site needs each unit.</td>
+        </tr>
+        <tr>
+          <td>Camera / lighting poles</td>
+          <td>Retained only as infrastructure allowances tied to approved Phase 1 devices.</td>
+          <td>Mounting, cable route, structural and coverage need for each pole.</td>
+        </tr>
+        <tr>
+          <td>Industrial LED floodlights</td>
+          <td>Retained only where needed for current safe operation or night capture quality.</td>
+          <td>Night-time operational requirement, lighting zone and associated camera need.</td>
+        </tr>
+        <tr>
+          <td>In-ground bollards</td>
+          <td>Retained only as preliminary allowance subject to site protection design.</td>
+          <td>Protection zones, retained barriers, impact-protection logic and retained/new asset strategy.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Vehicle-condition capture</h2>
+    <div class="card">
+      <p>Phase 1 may include basic image capture to create a current operational record where required. Phase 1 does not include automated AI comparison, automated damage identification or dedicated AI infrastructure.</p>
+      <p>If future analytics are pursued later, they should be assessed as a separate enhancement decision after Phase 1 is operating and the imagery quality, workflow value and commercial case are confirmed.</p>
+    </div>
+
+    <h2>Existing infrastructure strategy</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Phase 1 position</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Existing infrastructure retained</td>
+          <td>Any existing Hawk infrastructure or equipment that remains safe, suitable and compatible with the Phase 1 design should be retained where practical.</td>
+        </tr>
+        <tr>
+          <td>Existing infrastructure replaced</td>
+          <td>Replacement should occur only where an item is unsafe, unsuitable, non-compliant or incompatible with the approved Phase 1 design requirement.</td>
+        </tr>
+        <tr>
+          <td>New infrastructure installed</td>
+          <td>Only new infrastructure required for current Phase 1 operation, safety, compliance or evidentiary need should be installed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Delivery responsibility</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Lead / coordination intent</th>
+          <th>Commercial treatment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Site verification</td><td>RJL to lead Phase 1 verification with Hawk site access/support.</td><td>Phase 1 design-stage cost.</td></tr>
+        <tr><td>Detailed design</td><td>RJL to prepare the solution design for the approved Phase 1 scope.</td><td>Phase 1 design-stage cost.</td></tr>
+        <tr><td>Engineering coordination</td><td>External licensed/professional parties to be identified explicitly where required; appointment responsibility to be stated before final issue.</td><td>Separate line item if external/shared.</td></tr>
+        <tr><td>Procurement</td><td>To be confirmed after design sign-off for approved Phase 1 items only.</td><td>Phase 1 implementation cost.</td></tr>
+        <tr><td>Civil works</td><td>To be clearly marked as RJL-managed, Hawk-managed or third-party-managed by work package.</td><td>Included or excluded line item to be shown explicitly.</td></tr>
+        <tr><td>Electrical works</td><td>To be clearly marked as RJL-managed, Hawk-managed or third-party-managed by work package.</td><td>Included or excluded line item to be shown explicitly.</td></tr>
+        <tr><td>Installation</td><td>RJL to install or coordinate approved Phase 1 devices as documented in the final work package.</td><td>Phase 1 implementation cost.</td></tr>
+        <tr><td>Software / configuration</td><td>RJL to configure the approved Phase 1 operating workflow.</td><td>Phase 1 implementation plus ongoing support line items.</td></tr>
+        <tr><td>Integration</td><td>Limited to approved Phase 1 interfaces only.</td><td>Phase 1 implementation cost.</td></tr>
+        <tr><td>Testing / commissioning</td><td>RJL to lead against the agreed Phase 1 acceptance criteria.</td><td>Phase 1 implementation cost.</td></tr>
+        <tr><td>Training</td><td>RJL to provide operator training for the approved Phase 1 workflow.</td><td>Phase 1 implementation cost.</td></tr>
+        <tr><td>Handover</td><td>RJL to complete formal handover of the approved Phase 1 system.</td><td>Phase 1 implementation cost.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Amber workflow</h2>
+    <div class="card">
+      <p>An Amber outcome records and escalates the exception to the relevant local operations team, but does not itself hold the vehicle at the gate. Subject to the local safety controls being satisfied, vehicle movement continues while the exception is managed separately.</p>
+    </div>
+
+    <h2>Indicative programme</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Stage</th>
+          <th>Indicative position</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Measured survey and stakeholder confirmation</td><td>Initial Phase 1 design stage.</td></tr>
+        <tr><td>Detailed design and engineering coordination</td><td>Following measured survey.</td></tr>
+        <tr><td>Procurement of approved Phase 1 items</td><td>After design sign-off and release approval.</td></tr>
+        <tr><td>Civil and electrical works</td><td>After procurement and access planning.</td></tr>
+        <tr><td>Installation and configuration</td><td>After infrastructure readiness.</td></tr>
+        <tr><td>Testing, commissioning and handover</td><td>Final Phase 1 delivery stage.</td></tr>
+      </tbody>
+    </table>
+    <div class="card">
+      <p>Final programme durations remain subject to measured survey, approvals, engineering inputs, access constraints and equipment lead times. If a full timeline is not yet available, that should be stated explicitly in the executive issue.</p>
+    </div>
+
+    <h2>Commercial visibility</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Commercial category</th>
+          <th>How it should be presented</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Phase 1 required expenditure</td><td>Standalone line items for approved current-scope works only.</td></tr>
+        <tr><td>Phase 1 optional expenditure</td><td>Clearly separated from required scope and not assumed approved.</td></tr>
+        <tr><td>External/shared professional or project costs</td><td>Shown separately with appointment/coordination responsibility identified.</td></tr>
+        <tr><td>Future phase expenditure</td><td>Shown as not included in this Phase 1 approval.</td></tr>
+        <tr><td>One-off implementation costs</td><td>Separated from recurring service costs.</td></tr>
+        <tr><td>Ongoing recurring costs</td><td>Software, hosting, connectivity, storage, support and maintenance shown separately.</td></tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>
