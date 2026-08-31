@@ -7,91 +7,41 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --app:#081826; --sidebar:#061827; --panel:#10293C; --elev:#163A54; --border:#29475C;
-      --text:#F4F7FA; --muted:#9CB1C3; --accent:#F36F21; --good:#2BB673; --warn:#F3B43F; --bad:#E45454; --cyan:#56C2D6;
-      --lane:#56C2D6;
-    }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'IBM Plex Sans',sans-serif; color:var(--text); background:var(--app); overflow:hidden; }
-    button, input, select { font:inherit; color:inherit; }
-    .mono { font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
-
-    .app-shell { height:100vh; display:grid; grid-template-columns:256px minmax(0,1fr); }
-    .sidebar { background:var(--sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; }
-    .brand { height:68px; display:flex; align-items:center; padding:0 20px; border-bottom:1px solid var(--border); font-weight:700; letter-spacing:.4px; }
-    .menu { padding:10px 0; display:flex; flex-direction:column; gap:4px; }
-    .menu button { height:44px; border:0; text-align:left; background:transparent; padding:0 18px 0 20px; color:var(--muted); }
-    .menu button.active { color:var(--text); background:#0d2640; border-left:4px solid var(--accent); padding-left:16px; }
-    .sidebar-foot { margin-top:auto; padding:16px 20px; border-top:1px solid var(--border); display:grid; gap:8px; }
-    .tiny { font-size:12px; color:var(--muted); }
-
-    .main { min-width:0; display:grid; grid-template-rows:72px 112px 52px minmax(0,1fr); gap:0; }
-    .topbar { border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; justify-content:space-between; }
-    .lane-toggle { display:flex; gap:8px; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:6px; }
-    .lane-toggle button { min-height:44px; border:1px solid transparent; background:transparent; border-radius:8px; padding:0 16px; color:var(--muted); }
-    .lane-toggle button.active { background:var(--elev); color:var(--text); border-color:var(--lane); }
-    .advisory { font-size:13px; color:var(--muted); }
-
-    .kpis { padding:10px 24px; display:grid; grid-template-columns:1fr 1fr; gap:16px; border-bottom:1px solid var(--border); }
-    .kpi { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px 20px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:16px; }
-    .kpi .value { font-size:30px; font-weight:700; line-height:1; }
-    .kpi .meta { color:var(--muted); font-size:13px; }
-    .mini-bars { display:flex; align-items:flex-end; gap:6px; height:42px; }
-    .mini-bars span { width:12px; border-radius:4px 4px 0 0; background:linear-gradient(180deg,#3f5f77,#1a364d); border:1px solid #3f5f77; }
-
-    .event-rail { border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 24px; color:var(--text); background:#0c2234; }
-    .event-rail .tiny { margin-left:8px; }
-
-    .cockpit-wrap { position:relative; min-height:0; padding:24px; }
-    .lane-rail { position:absolute; left:24px; right:24px; top:12px; height:4px; border-radius:999px; background:linear-gradient(90deg,transparent,var(--lane),transparent); opacity:.85; }
-    .live-cockpit { height:100%; display:grid; grid-template-columns:minmax(270px,25fr) minmax(500px,46fr) minmax(350px,29fr); gap:24px; min-height:0; }
-    .zone { background:var(--panel); border:1px solid var(--border); border-radius:12px; min-height:0; display:flex; flex-direction:column; }
-    .zone-head { min-height:56px; padding:0 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-    .zone-body { padding:20px; min-height:0; overflow:auto; display:grid; gap:16px; }
-    .divider { border-top:1px solid var(--border); margin:4px 0; }
-
-    .status-chip { display:inline-flex; gap:8px; align-items:center; min-height:32px; padding:0 10px; border-radius:999px; background:#0d2438; border:1px solid var(--border); font-size:13px; color:var(--muted); }
-    .status-dot { width:8px; height:8px; border-radius:50%; }
-
-    .checklist-item { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; min-height:44px; padding:0 10px; border:1px solid var(--border); border-radius:10px; background:#0d2437; }
-    .checklist-item input { width:18px; height:18px; accent-color:var(--good); }
-    .decision-foot { position:sticky; bottom:0; background:var(--panel); padding-top:12px; border-top:1px solid var(--border); display:grid; gap:10px; }
-    .btn-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-    .btn { min-height:44px; border-radius:10px; border:1px solid var(--border); background:var(--elev); cursor:pointer; }
-    .btn.approve { border-color:#2f7a5a; background:#174336; }
-    .btn.escalate { border-color:#887039; background:#4f4221; }
-    .btn.deny { border-color:#8b3e3e; background:#4e2828; }
-    .btn.primary { border-color:#3f6b8a; background:#184561; }
-
-    .intercom-active { border:1px solid var(--border); border-radius:10px; padding:16px; background:#0d2438; display:grid; gap:12px; }
-    .endpoint { font-size:22px; font-weight:700; letter-spacing:.3px; }
-    .intercom-controls { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-    .boom-state { display:grid; gap:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:#0d2438; }
-
-    .camera-main { border:1px solid var(--border); border-radius:10px; height:240px; background:#0b2031; display:flex; align-items:center; justify-content:center; color:var(--muted); text-align:center; padding:12px; }
-    .thumbs { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .thumb { min-height:52px; border:1px solid var(--border); background:#0d2438; border-radius:10px; text-align:left; padding:8px 10px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .thumb.active { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
-    .joystick { display:grid; grid-template-columns:52px 52px 52px; grid-template-rows:52px 52px 52px; gap:6px; justify-content:center; }
-    .joy-btn { min-height:44px; border:1px solid var(--border); border-radius:10px; background:var(--elev); }
-    .joy-btn[disabled] { opacity:.45; cursor:not-allowed; }
-
-    .modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; }
-    .modal.open { display:flex; }
-    .modal-card { width:min(520px,92vw); background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; display:grid; gap:12px; }
-    .modal textarea { min-height:120px; border:1px solid var(--border); border-radius:10px; background:#0d2438; padding:10px; color:var(--text); resize:vertical; }
-
-    .mobile-menu { display:none; }
-    @media (max-width:1279px) {
-      .app-shell { grid-template-columns:0 minmax(0,1fr); }
-      .sidebar { position:fixed; inset:0 auto 0 0; width:256px; transform:translateX(-100%); transition:.2s ease; z-index:9; }
-      .sidebar.open { transform:translateX(0); }
-      .mobile-menu { display:inline-flex; min-height:44px; border:1px solid var(--border); border-radius:10px; background:var(--elev); padding:0 14px; align-items:center; }
-      .live-cockpit { grid-template-columns:1fr; }
-      .zone { min-height:320px; }
-    }
+    :root { --app:#081826; --sidebar:#061827; --panel:#10293C; --elev:#163A54; --border:#29475C; --text:#F4F7FA; --muted:#9CB1C3; --accent:#F36F21; --good:#2BB673; --warn:#F3B43F; --bad:#E45454; --cyan:#56C2D6; --lane:#56C2D6; }
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:'IBM Plex Sans',sans-serif;color:var(--text);background:var(--app);overflow:hidden}
+    button,input{font:inherit;color:inherit} .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums} .tiny{font-size:12px;color:var(--muted)}
+    .app-shell{height:100vh;display:grid;grid-template-columns:256px minmax(0,1fr)} .sidebar{background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
+    .brand{height:68px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);font-weight:700}
+    .menu{padding:10px 0;display:grid;gap:4px} .menu button{height:44px;border:0;background:transparent;text-align:left;padding:0 18px 0 20px;color:var(--muted)}
+    .menu button.active{background:#0d2640;border-left:4px solid var(--accent);padding-left:16px;color:var(--text)}
+    .sidebar-foot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);display:grid;gap:8px}
+    .main{min-width:0;display:grid;grid-template-rows:72px 112px 52px minmax(0,1fr)} .topbar{border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+    .lane-toggle{display:flex;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px} .lane-toggle button{min-height:44px;border:1px solid transparent;border-radius:8px;background:transparent;padding:0 16px;color:var(--muted)}
+    .lane-toggle button.active{background:var(--elev);border-color:var(--lane);color:var(--text)} .advisory{font-size:13px;color:var(--muted)}
+    .kpis{padding:10px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;border-bottom:1px solid var(--border)} .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+    .kpi .value{font-size:30px;font-weight:700;line-height:1} .kpi .meta{font-size:13px;color:var(--muted)} .mini-bars{display:flex;align-items:flex-end;gap:6px;height:42px}
+    .mini-bars span{width:12px;border:1px solid #3f5f77;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#3f5f77,#1a364d)}
+    .event-rail{border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;background:#0c2234} .event-rail .tiny{margin-left:8px}
+    .cockpit-wrap{position:relative;min-height:0;padding:24px} .lane-rail{position:absolute;left:24px;right:24px;top:12px;height:4px;border-radius:999px;background:linear-gradient(90deg,transparent,var(--lane),transparent)}
+    .live-cockpit{height:100%;min-height:0;display:grid;grid-template-columns:minmax(270px,25fr) minmax(500px,46fr) minmax(350px,29fr);gap:24px}
+    .zone{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0} .zone-head{min-height:56px;border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+    .zone-body{padding:20px;overflow:auto;display:grid;gap:16px;min-height:0} .divider{border-top:1px solid var(--border)}
+    .status-chip{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:#0d2438;color:var(--muted);font-size:13px} .status-dot{width:8px;height:8px;border-radius:50%}
+    .btn{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--elev);cursor:pointer} .btn[disabled]{opacity:.45;cursor:not-allowed}
+    .btn.approve{background:#174336;border-color:#2f7a5a}.btn.escalate{background:#4f4221;border-color:#887039}.btn.deny{background:#4e2828;border-color:#8b3e3e}.btn.primary{background:#184561;border-color:#3f6b8a}
+    .btn-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px} .field{min-height:44px;border-radius:10px;border:1px solid var(--border);background:#0d2438;color:var(--text);padding:0 12px;width:100%}
+    .checklist-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--border);border-radius:10px;background:#0d2437} .checklist-item input[type='checkbox']{width:18px;height:18px;accent-color:var(--good)}
+    .decision-foot{position:sticky;bottom:0;background:var(--panel);padding-top:12px;border-top:1px solid var(--border);display:grid;gap:10px}
+    .intercom-active,.boom-state{border:1px solid var(--border);border-radius:10px;padding:14px;background:#0d2438;display:grid;gap:10px} .endpoint{font-size:22px;font-weight:700}
+    .intercom-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .camera-main{height:240px;border:1px solid var(--border);border-radius:10px;background:#0b2031;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:12px}
+    .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.thumb{min-height:52px;border:1px solid var(--border);background:#0d2438;border-radius:10px;text-align:left;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.thumb.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+    .joystick{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px 52px;gap:6px;justify-content:center}.joy-btn{min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev)}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{width:min(520px,92vw);background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;display:grid;gap:12px}
+    .mobile-menu{display:none}
+    @media (max-width:1279px){.app-shell{grid-template-columns:0 minmax(0,1fr)}.sidebar{position:fixed;inset:0 auto 0 0;width:256px;transform:translateX(-100%);transition:.2s;z-index:9}.sidebar.open{transform:translateX(0)}.mobile-menu{display:inline-flex;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--elev);padding:0 14px;align-items:center}.live-cockpit{grid-template-columns:1fr}.zone{min-height:320px}}
   </style>
 </head>
 <body>
@@ -99,317 +49,192 @@
     <aside class="sidebar" id="sidebar">
       <div class="brand">RJL LIVE CONTROL</div>
       <nav class="menu">
-        <button class="active">Live Control</button>
-        <button>Vehicle Queue</button>
-        <button>Records</button>
-        <button>Exceptions</button>
-        <button>AI Assistant</button>
-        <button>System Health</button>
-        <button>Settings</button>
+        <button class="active">Live Control</button><button>Vehicle Queue</button><button>Records</button><button>Exceptions</button><button>AI Assistant</button><button>System Health</button><button>Settings</button>
       </nav>
       <div class="sidebar-foot">
-        <div>Operator: <span class="mono">M. HARRIS</span></div>
+        <div>Operator: <span class="mono" id="operatorName">Not signed in</span></div>
         <div>Shift: <span class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span>Active</span></span></div>
-        <button class="btn">Sign out</button>
+        <div class="tiny" id="authStatus">Sign in required for boom requests</div>
+        <button class="btn" id="signInBtn">Sign in</button>
+        <button class="btn" id="signOutBtn" disabled>Sign out</button>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <button class="mobile-menu" id="menuBtn">Menu</button>
-          <div class="tiny">ENTRY LANE / EXIT LANE</div>
-          <div class="lane-toggle" role="tablist" aria-label="Lane selector">
-            <button id="laneEntry" class="active" aria-pressed="true">ENTRY LANE</button>
-            <button id="laneExit" aria-pressed="false">EXIT LANE</button>
-          </div>
-        </div>
+        <div style="display:flex;align-items:center;gap:12px;"><button class="mobile-menu" id="menuBtn">Menu</button><div class="tiny">ENTRY LANE / EXIT LANE</div><div class="lane-toggle"><button id="laneEntry" class="active">ENTRY LANE</button><button id="laneExit">EXIT LANE</button></div></div>
         <div class="advisory">AI Assistant is advisory-only for procedures, records, exceptions and system health.</div>
       </header>
 
       <section class="kpis">
-        <article class="kpi">
-          <div>
-            <div class="tiny">Vehicles today</div>
-            <div class="value mono" id="vehiclesToday">142</div>
-            <div class="meta">Entry/Exit split in legend · exact labels</div>
-          </div>
-          <div class="mini-bars" aria-label="Six hour bars">
-            <span style="height:16px"></span><span style="height:20px"></span><span style="height:26px"></span>
-            <span style="height:31px"></span><span style="height:29px"></span><span style="height:36px"></span>
-          </div>
-        </article>
-        <article class="kpi">
-          <div>
-            <div class="tiny">Reefer checks today</div>
-            <div class="value mono">3.2°C</div>
-            <div class="meta">Checklist reading · 3.2°C · entered 10:42</div>
-          </div>
-          <div class="meta mono" style="text-align:right;line-height:1.45;">
-            <div>Within range: 38</div><div>Warm exception: 3</div><div>Cold exception: 1</div>
-          </div>
-        </article>
+        <article class="kpi"><div><div class="tiny">Vehicles today</div><div class="value mono" id="vehiclesToday">142</div><div class="meta">Entry/Exit split in legend · exact labels</div></div><div class="mini-bars"><span style="height:16px"></span><span style="height:20px"></span><span style="height:26px"></span><span style="height:31px"></span><span style="height:29px"></span><span style="height:36px"></span></div></article>
+        <article class="kpi"><div><div class="tiny">Reefer checks today</div><div class="value mono" id="reeferValue">3.2°C</div><div class="meta" id="reeferMeta">Checklist reading · 3.2°C · entered 10:42</div></div><div class="meta mono" style="text-align:right;line-height:1.45"><div>Within range: 38</div><div>Warm exception: 3</div><div>Cold exception: 1</div></div></article>
       </section>
 
-      <div class="event-rail">A vehicle has been detected in the <span id="eventLane">entry lane</span>.<span class="tiny mono">10:44 · source: loop + camera (deduplicated)</span></div>
+      <div class="event-rail"><span id="eventMessage">A vehicle has been detected in the <span id="eventLane">entry lane</span>.</span><span class="tiny mono" id="eventMeta">10:44 · source: loop + camera (deduplicated)</span></div>
 
       <section class="cockpit-wrap">
-        <div class="lane-rail" id="laneRail"></div>
+        <div class="lane-rail"></div>
         <div class="live-cockpit">
-          <section class="zone" aria-label="Checklist zone">
-            <div class="zone-head"><h2>Checklist</h2><span class="status-chip"><span class="status-dot" style="background:var(--lane)"></span><span id="laneBadge">ENTRY</span></span></div>
-            <div class="zone-body">
-              <div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="activeVehicle">Vehicle: E-0743</span></div>
-              <div id="checklist"></div>
-              <div class="decision-foot">
-                <div class="btn-row">
-                  <button class="btn approve" id="approveBtn">✓ Approve</button>
-                  <button class="btn escalate" id="escalateBtn">⚠ Escalate exception</button>
-                  <button class="btn deny" id="denyBtn">⛔ Deny — unsafe</button>
-                </div>
-                <button class="btn primary" id="boomRequestBtn">Request Entry Boom Open</button>
-                <div class="tiny" id="decisionText">No decision submitted.</div>
-              </div>
-            </div>
-          </section>
+          <section class="zone"><div class="zone-head"><h2>Checklist</h2><span class="status-chip"><span class="status-dot" style="background:var(--lane)"></span><span id="laneBadge">ENTRY</span></span></div><div class="zone-body"><div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="activeVehicle">Vehicle: E-0743</span></div><div id="checklist"></div><div><div class="tiny">Temperature checklist reading</div><input class="field mono" id="tempInput" type="number" step="0.1" value="3.2"></div><div class="decision-foot"><div class="btn-row"><button class="btn approve" id="approveBtn">✓ Approve</button><button class="btn escalate" id="escalateBtn">⚠ Escalate exception</button><button class="btn deny" id="denyBtn">⛔ Deny — unsafe</button></div><button class="btn primary" id="boomRequestBtn">Request Entry Boom Open</button><div class="tiny" id="decisionText">No decision submitted.</div></div></div></section>
 
-          <section class="zone" aria-label="Intercom zone">
-            <div class="zone-head"><h2>Intercom</h2><span class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="otherEndpointHealth">Car-height health: OK</span></span></div>
-            <div class="zone-body">
-              <article class="intercom-active">
-                <div class="tiny">Active session</div>
-                <div class="endpoint" id="activeEndpointLabel">ENTRY · TRUCK-HEIGHT INTERCOM</div>
-                <div class="intercom-controls">
-                  <button class="btn" id="answerBtn">Answer</button>
-                  <button class="btn" id="muteBtn">Mute</button>
-                  <button class="btn" id="volumeBtn">Volume 70%</button>
-                  <button class="btn" id="endBtn">End call</button>
-                </div>
-                <div class="btn-row" style="grid-template-columns:1fr 1fr;">
-                  <button class="btn" data-endpoint="truck">Truck-height endpoint</button>
-                  <button class="btn" data-endpoint="car">Car-height endpoint</button>
-                </div>
-              </article>
-              <div class="boom-state">
-                <div><strong>Boom state:</strong> <span id="boomState">Closed</span></div>
-                <div class="tiny">Open request only · Roger controller manages movement and obstruction safety</div>
-              </div>
-              <div class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span>Hardwired safety: Healthy</span></div>
-            </div>
-          </section>
+          <section class="zone"><div class="zone-head"><h2>Intercom</h2><span class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="otherEndpointHealth">Car-height health: OK</span></span></div><div class="zone-body"><article class="intercom-active"><div class="tiny">Active session</div><div class="endpoint" id="activeEndpointLabel">ENTRY · TRUCK-HEIGHT INTERCOM</div><div class="intercom-controls"><button class="btn">Answer</button><button class="btn">Mute</button><button class="btn">Volume 70%</button><button class="btn">End call</button></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" data-endpoint="truck">Truck-height endpoint</button><button class="btn" data-endpoint="car">Car-height endpoint</button></div></article><div class="boom-state"><div><strong>Boom state:</strong> <span id="boomState">Closed</span></div><div class="tiny">Open request only · Roger controller manages movement and obstruction safety</div></div><div class="status-chip"><span class="status-dot" style="background:var(--good)"></span><span id="serviceStatus">Hardwired safety: Healthy</span></div></div></section>
 
-          <section class="zone" aria-label="Camera zone">
-            <div class="zone-head"><h2>Cameras</h2><span class="status-chip"><span class="status-dot" style="background:var(--accent)"></span><span id="ptzTargetLabel">PTZ target: Entry · Approach / Wide</span></span></div>
-            <div class="zone-body">
-              <div class="tiny" id="cameraFullName">Approach / Wide</div>
-              <div class="camera-main" id="cameraMain">Selected camera feed<br/><span class="mono">Approach / Wide</span></div>
-              <div class="thumbs" id="cameraThumbs"></div>
-              <div class="divider"></div>
-              <div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="ptzStatus">PTZ idle</span></div>
-              <div class="joystick" aria-label="Shared PTZ joystick">
-                <span></span><button class="joy-btn" data-dir="up">↑</button><span></span>
-                <button class="joy-btn" data-dir="left">←</button><button class="joy-btn" data-dir="stop">■</button><button class="joy-btn" data-dir="right">→</button>
-                <span></span><button class="joy-btn" data-dir="down">↓</button><span></span>
-              </div>
-              <div class="btn-row" style="grid-template-columns:1fr 1fr;">
-                <button class="btn" id="zoomInBtn">Zoom +</button>
-                <button class="btn" id="zoomOutBtn">Zoom −</button>
-              </div>
-              <div class="btn-row" style="grid-template-columns:repeat(4,1fr);">
-                <button class="btn preset" data-preset="Cab">Cab</button>
-                <button class="btn preset" data-preset="Plate">Plate</button>
-                <button class="btn preset" data-preset="Trailer">Trailer</button>
-                <button class="btn preset" data-preset="Rear">Rear</button>
-              </div>
-              <div class="tiny" id="ptzAvailText">PTZ available for selected camera.</div>
-            </div>
-          </section>
+          <section class="zone"><div class="zone-head"><h2>Cameras</h2><span class="status-chip"><span class="status-dot" style="background:var(--accent)"></span><span id="ptzTargetLabel">PTZ target: Entry · Approach / Wide</span></span></div><div class="zone-body"><div class="tiny" id="cameraFullName">Approach / Wide</div><div class="camera-main" id="cameraMain">Selected camera feed<br><span class="mono">Approach / Wide</span></div><div class="thumbs" id="cameraThumbs"></div><div class="divider"></div><div class="status-chip"><span class="status-dot" style="background:var(--cyan)"></span><span id="ptzStatus">PTZ idle</span></div><div class="joystick"><span></span><button class="joy-btn" data-dir="up">↑</button><span></span><button class="joy-btn" data-dir="left">←</button><button class="joy-btn" data-dir="stop">■</button><button class="joy-btn" data-dir="right">→</button><span></span><button class="joy-btn" data-dir="down">↓</button><span></span></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="zoomInBtn">Zoom +</button><button class="btn" id="zoomOutBtn">Zoom −</button></div><div class="btn-row" style="grid-template-columns:repeat(4,1fr)"><button class="btn preset" data-preset="Cab">Cab</button><button class="btn preset" data-preset="Plate">Plate</button><button class="btn preset" data-preset="Trailer">Trailer</button><button class="btn preset" data-preset="Rear">Rear</button></div><div class="tiny" id="ptzAvailText">PTZ available for selected camera.</div></div></section>
         </div>
       </section>
     </main>
   </div>
 
-  <div class="modal" id="denyModal" role="dialog" aria-modal="true" aria-labelledby="denyTitle">
-    <div class="modal-card">
-      <h3 id="denyTitle">Confirm unsafe denial</h3>
-      <div class="tiny">Reason is required. No open request will be sent.</div>
-      <textarea id="denyReason" placeholder="Enter unsafe reason..."></textarea>
-      <div class="btn-row" style="grid-template-columns:1fr 1fr;">
-        <button class="btn" id="denyCancel">Cancel</button>
-        <button class="btn deny" id="denyConfirm">Confirm Deny</button>
-      </div>
-    </div>
-  </div>
+  <div class="modal" id="denyModal"><div class="modal-card"><h3>Confirm unsafe denial</h3><div class="tiny">Reason is required. No open request will be sent.</div><textarea class="field" id="denyReason" style="min-height:120px;padding:10px;resize:vertical"></textarea><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="denyCancel">Cancel</button><button class="btn deny" id="denyConfirm">Confirm Deny</button></div></div></div>
+  <div class="modal" id="loginModal"><div class="modal-card"><h3>Operator sign-in</h3><input class="field" id="email" type="email" placeholder="Email" /><input class="field" id="opPassword" type="password" placeholder="Password" /><div class="tiny" id="loginError"></div><div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn" id="loginCancel">Cancel</button><button class="btn primary" id="loginConfirm">Sign in</button></div></div></div>
 
   <script>
+    const SUPABASE_URL = window.RJL_SUPABASE_URL || '';
+    const SUPABASE_ANON = window.RJL_SUPABASE_ANON || '';
+    const GATE_ID = 'demo-0001';
+    const sb = SUPABASE_URL && SUPABASE_ANON ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
     const checklistOrder = ['Driver','Code','Loaded','Precheck','Temperature','Fuel','Trailer number','Trailer clean','Pogo','Board count'];
-    const laneState = {
-      entry:{ vehicle:'E-0743', boom:'Closed', decision:'No decision submitted.', decisionType:'' },
-      exit:{ vehicle:'X-0192', boom:'Open', decision:'No decision submitted.', decisionType:'' }
-    };
-    let lane = 'entry';
-    let endpoint = 'truck';
-    let movingDir = null;
-    let selectedCamera = 0;
-    const cameras = [
-      { name:'Approach / Wide', ptz:true },
-      { name:'Driver / Nearside', ptz:true },
-      { name:'Offside', ptz:true },
-      { name:'Load Aperture / Rear', ptz:false },
-      { name:'Undercarriage / Tyres', ptz:false },
-      { name:'Overhead / Top', ptz:false }
-    ];
+    const laneState = { entry:{vehicle:'E-0743',boom:'Closed',decision:'No decision submitted.',decisionType:''}, exit:{vehicle:'X-0192',boom:'Closed',decision:'No decision submitted.',decisionType:''} };
+    const authState = { signedIn:false, readOnly:false, suspended:false, gateError:'' };
+    const cameras = [{name:'Approach / Wide',ptz:true},{name:'Driver / Nearside',ptz:true},{name:'Offside',ptz:true},{name:'Load Aperture / Rear',ptz:false},{name:'Undercarriage / Tyres',ptz:false},{name:'Overhead / Top',ptz:false}];
+    let lane='entry', endpoint='truck', selectedCamera=0, movingDir=null;
 
     const checklistEl = document.getElementById('checklist');
-    checklistOrder.forEach((label) => {
-      const row = document.createElement('label');
-      row.className = 'checklist-item';
+    checklistOrder.forEach((label)=>{
+      const row=document.createElement('div'); row.className='checklist-item';
       row.innerHTML = `<input type="checkbox" aria-label="${label}"><span>${label}</span><span class="status-chip"><span class="status-dot" style="background:var(--muted)"></span><span>Pending</span></span>`;
-      row.querySelector('input').addEventListener('change', (e) => {
-        row.querySelector('.status-chip').innerHTML = e.target.checked
-          ? '<span class="status-dot" style="background:var(--good)"></span><span>Complete</span>'
-          : '<span class="status-dot" style="background:var(--muted)"></span><span>Pending</span>';
-      });
+      row.querySelector('input[type="checkbox"]').addEventListener('change',(e)=>{ row.querySelector('.status-chip').innerHTML = e.target.checked ? '<span class="status-dot" style="background:var(--good)"></span><span>Complete</span>' : '<span class="status-dot" style="background:var(--muted)"></span><span>Pending</span>'; });
       checklistEl.appendChild(row);
     });
 
-    function updateLaneUI() {
-      document.getElementById('app').dataset.lane = lane;
-      document.documentElement.style.setProperty('--lane', lane === 'entry' ? '#56C2D6' : '#F3B43F');
-      document.getElementById('laneEntry').classList.toggle('active', lane === 'entry');
-      document.getElementById('laneExit').classList.toggle('active', lane === 'exit');
-      document.getElementById('laneEntry').setAttribute('aria-pressed', lane === 'entry');
-      document.getElementById('laneExit').setAttribute('aria-pressed', lane === 'exit');
-      document.getElementById('laneBadge').textContent = lane.toUpperCase();
-      document.getElementById('activeVehicle').textContent = `Vehicle: ${laneState[lane].vehicle}`;
-      document.getElementById('eventLane').textContent = lane + ' lane';
-      document.getElementById('boomRequestBtn').textContent = lane === 'entry' ? 'Request Entry Boom Open' : 'Request Exit Boom Open';
-      document.getElementById('boomState').textContent = laneState[lane].boom;
-      document.getElementById('decisionText').textContent = laneState[lane].decision;
-      document.getElementById('boomRequestBtn').disabled = laneState[lane].decisionType !== 'approve';
-      document.getElementById('activeEndpointLabel').textContent = `${lane.toUpperCase()} · ${endpoint.toUpperCase()}-HEIGHT INTERCOM`;
-      document.getElementById('otherEndpointHealth').textContent = `${endpoint === 'truck' ? 'Car' : 'Truck'}-height health: OK`;
-      updateCameraUI();
+    function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+    function setEvent(text,source){ document.getElementById('eventMessage').innerHTML = `${text} <span id="eventLane">${lane} lane</span>.`; document.getElementById('eventMeta').textContent = `${now()} · source: ${source}`; }
+    function updateTempMeta(){ const t=Number(document.getElementById('tempInput').value || 0).toFixed(1); document.getElementById('reeferValue').textContent=`${t}°C`; document.getElementById('reeferMeta').textContent=`Checklist reading · ${t}°C · entered ${now()}`; }
+
+    function canOperate(){
+      return !authState.readOnly && authState.signedIn && !authState.suspended;
     }
 
-    function updateCameraUI() {
+    function applyControlLocks(){
+      const allowed = canOperate();
+      document.getElementById('approveBtn').disabled = !allowed;
+      document.getElementById('escalateBtn').disabled = !allowed;
+      document.getElementById('denyBtn').disabled = !allowed;
+      document.getElementById('boomRequestBtn').disabled = !allowed || laneState[lane].decisionType !== 'approve';
+      document.querySelectorAll('.intercom-controls .btn,.intercom-active [data-endpoint]').forEach((el)=>el.disabled = !allowed);
+      document.getElementById('signInBtn').disabled = authState.readOnly || authState.signedIn;
+      document.getElementById('signOutBtn').disabled = authState.readOnly || !authState.signedIn;
+      document.getElementById('authStatus').textContent = !sb ? 'Configure Supabase runtime vars (RJL_SUPABASE_URL/RJL_SUPABASE_ANON)' : (authState.gateError || (authState.readOnly ? 'Supervisor read-only mode' : (authState.signedIn ? (authState.suspended ? 'Service suspended' : 'Signed in and active') : 'Sign in required for boom requests')));
+      document.getElementById('serviceStatus').textContent = authState.suspended ? 'Service status: Suspended' : 'Hardwired safety: Healthy';
+    }
+
+    function updateCameraUI(){
       const cam = cameras[selectedCamera];
-      document.getElementById('ptzTargetLabel').textContent = `PTZ target: ${lane[0].toUpperCase() + lane.slice(1)} · ${cam.name}`;
+      const allowed = canOperate();
+      document.getElementById('ptzTargetLabel').textContent = `PTZ target: ${lane[0].toUpperCase()+lane.slice(1)} · ${cam.name}`;
       document.getElementById('cameraFullName').textContent = cam.name;
-      document.getElementById('cameraMain').innerHTML = `Selected camera feed<br/><span class="mono">${cam.name}</span>`;
+      document.getElementById('cameraMain').innerHTML = `Selected camera feed<br><span class="mono">${cam.name}</span>`;
       document.getElementById('ptzAvailText').textContent = cam.ptz ? 'PTZ available for selected camera.' : 'Fixed view · PTZ unavailable';
-      document.querySelectorAll('.joy-btn,[id="zoomInBtn"],[id="zoomOutBtn"],.preset').forEach((el) => el.disabled = !cam.ptz);
-      document.querySelectorAll('.thumb').forEach((el, i) => el.classList.toggle('active', i === selectedCamera));
+      document.querySelectorAll('.thumb').forEach((el,i)=>el.classList.toggle('active', i===selectedCamera));
+      document.querySelectorAll('.joy-btn,#zoomInBtn,#zoomOutBtn,.preset').forEach((el)=>el.disabled = !allowed || !cam.ptz);
       if (!cam.ptz) stopPTZ('fixed camera selected');
     }
 
+    function updateLaneUI(){
+      document.documentElement.style.setProperty('--lane', lane==='entry' ? '#56C2D6' : '#F3B43F');
+      document.getElementById('laneEntry').classList.toggle('active', lane==='entry');
+      document.getElementById('laneExit').classList.toggle('active', lane==='exit');
+      document.getElementById('laneBadge').textContent = lane.toUpperCase();
+      document.getElementById('activeVehicle').textContent = `Vehicle: ${laneState[lane].vehicle}`;
+      document.getElementById('boomRequestBtn').textContent = lane==='entry' ? 'Request Entry Boom Open' : 'Request Exit Boom Open';
+      document.getElementById('boomState').textContent = laneState[lane].boom;
+      document.getElementById('decisionText').textContent = laneState[lane].decision;
+      document.getElementById('activeEndpointLabel').textContent = `${lane.toUpperCase()} · ${endpoint.toUpperCase()}-HEIGHT INTERCOM`;
+      document.getElementById('otherEndpointHealth').textContent = `${endpoint==='truck' ? 'Car' : 'Truck'}-height health: OK`;
+      setEvent('A vehicle has been detected in the', 'loop + camera (deduplicated)');
+      applyControlLocks();
+      updateCameraUI();
+    }
+
     const thumbs = document.getElementById('cameraThumbs');
-    cameras.forEach((cam, i) => {
-      const b = document.createElement('button');
-      b.className = 'thumb' + (i === 0 ? ' active' : '');
-      b.textContent = cam.name;
-      b.onclick = () => { selectedCamera = i; updateCameraUI(); };
-      thumbs.appendChild(b);
-    });
+    cameras.forEach((cam,i)=>{ const b=document.createElement('button'); b.className='thumb'+(i===0?' active':''); b.textContent=cam.name; b.onclick=()=>{ selectedCamera=i; updateCameraUI();}; thumbs.appendChild(b); });
 
-    function setDecision(type, text) {
-      laneState[lane].decisionType = type;
-      laneState[lane].decision = text;
-      document.getElementById('decisionText').textContent = text;
-      document.getElementById('boomRequestBtn').disabled = type !== 'approve';
-    }
+    function setDecision(type,text){ laneState[lane].decisionType=type; laneState[lane].decision=text; document.getElementById('decisionText').textContent=text; applyControlLocks(); }
 
-    function requestBoomOpen() {
+    async function requestBoomOpen(){
+      if (!sb || !authState.signedIn || authState.suspended) return;
       const reqLane = lane;
-      laneState[reqLane].boom = 'Opening';
-      document.getElementById('boomState').textContent = 'Opening';
-      setTimeout(() => {
-        laneState[reqLane].boom = 'Open';
-        if (document.getElementById('app').dataset.lane === reqLane) document.getElementById('boomState').textContent = 'Open';
-      }, 1000);
+      const previousBoomState = laneState[reqLane].boom;
+      laneState[reqLane].boom='Opening'; document.getElementById('boomState').textContent='Opening'; setEvent(`Open request sent for ${reqLane}`, 'operator action');
+      const { data, error } = await sb.functions.invoke('gate-open', { body: { gate_id: GATE_ID, lane: reqLane } });
+      if (error || data?.error) { laneState[reqLane].boom=previousBoomState; if (lane===reqLane) document.getElementById('boomState').textContent=previousBoomState; setEvent(`Open request failed in ${reqLane}`, 'backend response'); return; }
+      laneState[reqLane].boom='Open'; if (lane===reqLane) document.getElementById('boomState').textContent='Open';
     }
 
-    function startPTZ(dir) {
-      const cam = cameras[selectedCamera];
-      if (!cam.ptz || dir === 'stop') return stopPTZ('stopped');
-      movingDir = dir;
-      document.getElementById('ptzStatus').textContent = `PTZ moving ${dir}`;
+    function startPTZ(dir){ const cam=cameras[selectedCamera]; if(!cam.ptz || dir==='stop') return stopPTZ('stopped'); movingDir=dir; document.getElementById('ptzStatus').textContent=`PTZ moving ${dir}`; }
+    function stopPTZ(reason='stopped'){ movingDir=null; document.getElementById('ptzStatus').textContent=`PTZ ${reason}`; }
+
+    async function loadGateStatus(){
+      if(!sb){ authState.suspended = false; applyControlLocks(); return; }
+      try {
+        const { data } = await sb.from('gates').select('service_status').eq('id', GATE_ID).maybeSingle();
+        if (!data) {
+          authState.suspended = true;
+          authState.gateError = `Gate record not found for ${GATE_ID}`;
+        } else {
+          authState.gateError = '';
+          authState.suspended = data.service_status === 'suspended';
+        }
+      } catch (err) {
+        authState.suspended = true;
+        authState.gateError = `Gate status lookup failed: ${err?.message || err}`;
+      }
+      applyControlLocks();
     }
-    function stopPTZ(reason='stopped') {
-      movingDir = null;
-      document.getElementById('ptzStatus').textContent = `PTZ ${reason}`;
-    }
+    function updateOperator(session){ authState.signedIn=!!session; document.getElementById('operatorName').textContent = session?.user?.email || 'Not signed in'; loadGateStatus(); }
+    async function signIn(){ if(!sb) return; const email=document.getElementById('email').value.trim(); const operatorPwd=document.getElementById('opPassword').value; if(!email||!operatorPwd) return; const { error } = await sb.auth.signInWithPassword({ email, password: operatorPwd }); if(error){ document.getElementById('loginError').textContent = error.message || 'Sign-in failed'; return; } document.getElementById('loginError').textContent = ''; document.getElementById('loginModal').classList.remove('open'); }
+    async function signOut(){ if(!sb) return; await sb.auth.signOut(); }
 
-    document.getElementById('laneEntry').onclick = () => { lane = 'entry'; updateLaneUI(); };
-    document.getElementById('laneExit').onclick = () => { lane = 'exit'; updateLaneUI(); };
-
-    document.querySelectorAll('[data-endpoint]').forEach((btn) => btn.onclick = () => {
-      endpoint = btn.dataset.endpoint;
-      updateLaneUI();
-    });
-
-    document.getElementById('approveBtn').onclick = () => setDecision('approve', '✓ Approved. Boom open request available.');
-    document.getElementById('escalateBtn').onclick = () => setDecision('escalate', '⚠ Amber exception routed (no hold condition).');
-    document.getElementById('denyBtn').onclick = () => document.getElementById('denyModal').classList.add('open');
-    document.getElementById('boomRequestBtn').onclick = requestBoomOpen;
-
-    document.getElementById('denyCancel').onclick = () => document.getElementById('denyModal').classList.remove('open');
-    document.getElementById('denyConfirm').onclick = () => {
-      const reason = document.getElementById('denyReason').value.trim();
-      if (!reason) return;
-      setDecision('deny', `⛔ Denied unsafe: ${reason}`);
-      document.getElementById('denyModal').classList.remove('open');
-      document.getElementById('denyReason').value = '';
-    };
-
-    document.querySelectorAll('.joy-btn').forEach((btn) => {
-      const dir = btn.dataset.dir;
-      btn.addEventListener('pointerdown', (e) => { e.preventDefault(); startPTZ(dir); });
-      btn.addEventListener('pointerup', () => stopPTZ('stopped'));
-      btn.addEventListener('pointercancel', () => stopPTZ('stopped'));
-      btn.addEventListener('mouseleave', () => movingDir && stopPTZ('stopped'));
-    });
-    window.addEventListener('blur', () => stopPTZ('stopped'));
-    document.addEventListener('visibilitychange', () => document.hidden && stopPTZ('stopped'));
-    window.addEventListener('pointerup', () => movingDir && stopPTZ('stopped'));
-    window.addEventListener('pointercancel', () => stopPTZ('stopped'));
-
-    document.getElementById('zoomInBtn').onclick = () => document.getElementById('ptzStatus').textContent = 'Zooming in';
-    document.getElementById('zoomOutBtn').onclick = () => document.getElementById('ptzStatus').textContent = 'Zooming out';
-    document.querySelectorAll('.preset').forEach((btn) => btn.onclick = () => document.getElementById('ptzStatus').textContent = `Preset: ${btn.dataset.preset}`);
-
-    document.addEventListener('keydown', (e) => {
-      const keyMap = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', w:'up', s:'down', a:'left', d:'right' };
-      const dir = keyMap[e.key];
-      if (dir) { e.preventDefault(); startPTZ(dir); }
-      if (e.key === 'Escape') stopPTZ('stopped');
-    });
-    document.addEventListener('keyup', (e) => {
-      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) stopPTZ('stopped');
-    });
-
-    const menuBtn = document.getElementById('menuBtn');
-    const sidebar = document.getElementById('sidebar');
-    menuBtn.onclick = () => sidebar.classList.toggle('open');
+    document.getElementById('laneEntry').onclick = () => { lane='entry'; updateLaneUI(); };
+    document.getElementById('laneExit').onclick = () => { lane='exit'; updateLaneUI(); };
+    document.querySelectorAll('[data-endpoint]').forEach((btn)=>btn.onclick = ()=>{ endpoint=btn.dataset.endpoint; updateLaneUI(); });
+    document.getElementById('approveBtn').onclick=()=>setDecision('approve','✓ Approved. Boom open request available.');
+    document.getElementById('escalateBtn').onclick=()=>setDecision('escalate','⚠ Amber exception routed (no hold condition).');
+    document.getElementById('denyBtn').onclick=()=>document.getElementById('denyModal').classList.add('open');
+    document.getElementById('boomRequestBtn').onclick=requestBoomOpen;
+    document.getElementById('denyCancel').onclick=()=>document.getElementById('denyModal').classList.remove('open');
+    document.getElementById('denyConfirm').onclick=()=>{ const reason=document.getElementById('denyReason').value.trim(); if(!reason) return; setDecision('deny', `⛔ Denied unsafe: ${reason}`); document.getElementById('denyReason').value=''; document.getElementById('denyModal').classList.remove('open'); };
+    document.querySelectorAll('.joy-btn').forEach((btn)=>{ const dir=btn.dataset.dir; btn.addEventListener('pointerdown',(e)=>{e.preventDefault();startPTZ(dir)}); btn.addEventListener('pointerup',()=>stopPTZ('stopped')); btn.addEventListener('pointercancel',()=>stopPTZ('stopped')); btn.addEventListener('mouseleave',()=>movingDir && stopPTZ('stopped')); });
+    window.addEventListener('blur',()=>stopPTZ('stopped')); document.addEventListener('visibilitychange',()=>document.hidden&&stopPTZ('stopped')); window.addEventListener('pointerup',()=>movingDir&&stopPTZ('stopped')); window.addEventListener('pointercancel',()=>stopPTZ('stopped'));
+    document.getElementById('zoomInBtn').onclick=()=>document.getElementById('ptzStatus').textContent='Zooming in';
+    document.getElementById('zoomOutBtn').onclick=()=>document.getElementById('ptzStatus').textContent='Zooming out';
+    document.querySelectorAll('.preset').forEach((btn)=>btn.onclick=()=>document.getElementById('ptzStatus').textContent=`Preset: ${btn.dataset.preset}`);
+    document.addEventListener('keydown',(e)=>{ const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',a:'left',s:'down',d:'right'}; if(m[e.key] && canOperate()){e.preventDefault();startPTZ(m[e.key]);} if(e.key==='Escape') stopPTZ('stopped');});
+    document.addEventListener('keyup',(e)=>['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)&&stopPTZ('stopped'));
+    document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('signInBtn').onclick=()=>document.getElementById('loginModal').classList.add('open');
+    document.getElementById('loginCancel').onclick=()=>{ document.getElementById('loginError').textContent=''; document.getElementById('loginModal').classList.remove('open'); };
+    document.getElementById('loginConfirm').onclick=signIn;
+    document.getElementById('signOutBtn').onclick=signOut;
+    document.getElementById('tempInput').addEventListener('change', updateTempMeta);
 
     const mobileMode = window.matchMedia('(max-width: 1279px)');
-    function applyMobileReadOnly() {
-      const readOnly = mobileMode.matches;
-      document.querySelectorAll('#approveBtn,#escalateBtn,#denyBtn,.intercom-controls .btn,[data-endpoint],.joy-btn,#zoomInBtn,#zoomOutBtn,.preset,#muteBtn,#answerBtn,#volumeBtn,#endBtn')
-        .forEach((el) => { el.disabled = readOnly; });
-      if (readOnly) {
-        document.getElementById('boomRequestBtn').disabled = true;
-      } else {
-        updateLaneUI();
-      }
-      document.querySelector('.advisory').textContent = readOnly
-        ? 'Supervisor read-only mode on narrow screens. AI Assistant remains advisory-only.'
-        : 'AI Assistant is advisory-only for procedures, records, exceptions and system health.';
-    }
+    function applyMobileReadOnly(){ authState.readOnly = mobileMode.matches; document.querySelector('.advisory').textContent = authState.readOnly ? 'Supervisor read-only mode on narrow screens. AI Assistant remains advisory-only.' : 'AI Assistant is advisory-only for procedures, records, exceptions and system health.'; applyControlLocks(); updateCameraUI(); }
     mobileMode.addEventListener('change', applyMobileReadOnly);
 
-    updateLaneUI();
-    applyMobileReadOnly();
+    if (sb) {
+      sb.auth.onAuthStateChange((_e,session)=>{
+        const wasSignedIn = authState.signedIn;
+        updateOperator(session);
+        if (!wasSignedIn && session) setEvent('Operator signed in for live workflow', 'auth');
+        if (wasSignedIn && !session) setEvent('Operator signed out', 'auth');
+      });
+    } else {
+      updateOperator(null);
+    }
+    updateLaneUI(); applyMobileReadOnly(); updateTempMeta();
   </script>
 </body>
 </html>
