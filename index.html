@@ -188,6 +188,7 @@
               <div>
                 <div class="tiny">User information (name / company / contact)</div>
                 <input class="field" id="userInfoInput" maxlength="200" placeholder="Jane Smith · FleetCo · +61..." />
+                <div class="tiny">Saved on this local workstation only.</div>
               </div>
               <div>
                 <div class="tiny">Operator opinion / notes</div>
@@ -312,7 +313,14 @@
     function stamp(){ return new Date().toISOString(); }
     function saveDB(){ localStorage.setItem('rjl.truckDB', JSON.stringify(state.truckDB)); localStorage.setItem('rjl.personDB', JSON.stringify(state.personDB)); }
     function sanitizeText(v){ return (v || '').replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(); }
-    function normalizePlate(v){ return sanitizeText(v).replace(/[^A-Za-z0-9-]/g, '').toUpperCase(); }
+    function normalizePlate(v){
+      return sanitizeText(v)
+        .toUpperCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^A-Z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
 
     function canOperate(){ return !state.auth.readOnly && state.auth.signedIn && !state.auth.suspended; }
     function timerClass(){ return state.countdown > 30 ? 'green' : state.countdown > 10 ? 'amber' : 'red'; }
