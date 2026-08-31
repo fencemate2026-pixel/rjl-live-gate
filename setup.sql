@@ -18,8 +18,8 @@ create table if not exists public.gates (
 
 alter table public.gates
   add column if not exists name text,
-  add column if not exists plan text,
-  add column if not exists service_status text,
+  add column if not exists plan text default 'standard',
+  add column if not exists service_status text default 'active',
   add column if not exists stripe_customer_id text,
   add column if not exists stripe_subscription_id text,
   add column if not exists created_at timestamptz not null default now();
