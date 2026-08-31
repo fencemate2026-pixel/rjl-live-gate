@@ -66,7 +66,17 @@ Deno.serve(async (req) => {
     }).catch((e) => console.error("audit log failed", e));
     return json({ error: "gate lookup failed" }, 500, origin);
   }
-  if (!gate) return json({ error: "gate not found" }, 404, origin);
+  if (!gate) {
+    await logGateAction(db, {
+      gateId,
+      actionType: "open_request",
+      actionStatus: "rejected",
+      actionSource: "gate-open",
+      actorUserId: user.id,
+      detail: { reason: "gate_not_found" },
+    }).catch((e) => console.error("audit log failed", e));
+    return json({ error: "gate not found" }, 404, origin);
+  }
   if (gate.service_status === "suspended") {
     await logGateAction(db, {
       gateId,
