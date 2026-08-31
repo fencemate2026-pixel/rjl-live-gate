@@ -1,0 +1,12 @@
+{
+  "provider": "vercel",
+  "teamSlug": "fencemate2026-pixels-projects",
+  "projectSlug": "hawk-rgp-operator",
+  "projectUrl": "https://vercel.com/fencemate2026-pixels-projects/hawk-rgp-operator",
+  "productionEntryPoints": [
+    "index.html",
+    "gate.html",
+    "plan-select.html"
+  ],
+  "backendProjectRef": "aevsfrxqyvtuycufffxk"
+}

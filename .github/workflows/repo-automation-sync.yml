@@ -28,6 +28,7 @@ jobs:
             README.md
             README-backend.md
             gate.html
+            hosting-target.json
             index.html
             index.ts
             linked-project.json
@@ -42,6 +43,7 @@ jobs:
             supabase/functions/stripe-webhook/index.ts
             supabase/migrations/20260831051500_gate_action_audit.sql
             util.ts
+            vercel.json
           )
 
           for file in "${required_files[@]}"; do
@@ -53,10 +55,20 @@ jobs:
           from pathlib import Path
 
           linked = json.loads(Path("linked-project.json").read_text())
+          hosting = json.loads(Path("hosting-target.json").read_text())
           required = {"ref", "name", "organization_id", "organization_slug"}
           missing = sorted(required.difference(linked))
           if missing:
               raise SystemExit(f"linked-project.json is missing keys: {', '.join(missing)}")
+
+          required_hosting = {"provider", "teamSlug", "projectSlug", "projectUrl", "productionEntryPoints", "backendProjectRef"}
+          missing_hosting = sorted(required_hosting.difference(hosting))
+          if missing_hosting:
+              raise SystemExit(f"hosting-target.json is missing keys: {', '.join(missing_hosting)}")
+          if hosting["provider"] != "vercel":
+              raise SystemExit("hosting-target.json must declare provider=vercel")
+          if linked["ref"] != hosting["backendProjectRef"]:
+              raise SystemExit("hosting-target.json backendProjectRef must match linked-project.json ref")
 
           expected_script = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
           expected_url = f"https://{linked['ref']}.supabase.co"
