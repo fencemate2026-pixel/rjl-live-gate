@@ -189,7 +189,21 @@ export async function claimStripeWebhookEvent(
     payload: event.payload,
   });
   if (!error) return true;
-  if (error.code === "23505") return false;
+  if (error.code === "23505") {
+    // A row already exists for this event_id (a Stripe retry). Only treat it as a
+    // duplicate to skip when the first delivery was already handled successfully.
+    // Rows still in 'received' or 'error' mean processing never completed, so we
+    // allow reprocessing (Stripe retries non-2xx responses).
+    const { data: existing, error: selectError } = await db
+      .from("stripe_webhook_events")
+      .select("processing_status")
+      .eq("event_id", event.eventId)
+      .maybeSingle();
+    if (selectError) throw selectError;
+    const status = existing?.processing_status;
+    if (status === "processed" || status === "ignored") return false;
+    return true;
+  }
   throw error;
 }
 
