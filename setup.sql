@@ -1,6 +1,8 @@
 -- RJL gate backend — blank-project bootstrap for Supabase project aevsfrxqyvtuycufffxk.
 -- Run in the Supabase SQL Editor before deploying the Edge Functions.
 
+create extension if not exists pgcrypto with schema extensions;
+
 -- 1. Core gate records used by the front-end and Edge Functions.
 create table if not exists public.gates (
   id                     text primary key,
@@ -80,7 +82,7 @@ values ('demo-0001', 'Demo Gate', 'standard', 'active')
 on conflict (id) do nothing;
 
 insert into public.gate_secrets (gate_id, hmac_secret)
-values ('demo-0001', '952637466aae5d1e751098b9a9c57b80')
+values ('demo-0001', encode(extensions.gen_random_bytes(32), 'hex'))
 on conflict (gate_id) do nothing;
 
 -- 5. Let signed-in linked users read only their own gate state from the browser.
