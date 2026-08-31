@@ -1,0 +1,16 @@
+{
+  "provider": "vercel",
+  "teamSlug": "fencemate2026-pixels-projects",
+  "projectSlug": "hawklogisticslavdemo",
+  "projectUrl": "https://vercel.com/fencemate2026-pixels-projects/hawklogisticslavdemo",
+  "productionEntryPoints": [
+    "index.html",
+    "gate.html",
+    "plan-select.html"
+  ],
+  "supabaseClientEntryPoints": [
+    "index.html",
+    "gate.html"
+  ],
+  "backendProjectRef": "aevsfrxqyvtuycufffxk"
+}
