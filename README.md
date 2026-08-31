@@ -13,6 +13,7 @@ Automation:
 
 Hosting target:
 - Front-end hosting is now kept in-repo for the Vercel project `hawklogisticslavdemo`.
+- Netlify deploy previews are not the intended host for this repository and should be disconnected or disabled for this repo/PR.
 
 Per-unit at the bench: set GATE_ID + HMAC_SECRET in the .ino, add the matching
 row in gates + gate_secrets, generate that client's gate.html config, flash.
