@@ -14,7 +14,7 @@ export function json(body: unknown, status = 200) {
   });
 }
 
-function requiredEnv(name: string): string {
+export function requiredEnv(name: string): string {
   const value = Deno.env.get(name);
   if (!value) throw new Error(`Missing required env: ${name}`);
   return value;
@@ -26,6 +26,13 @@ export const admin = () =>
     requiredEnv("SUPABASE_URL"),
     requiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
     { auth: { persistSession: false } },
+  );
+
+export const userClient = (authHeader: string) =>
+  createClient(
+    requiredEnv("SUPABASE_URL"),
+    requiredEnv("SUPABASE_ANON_KEY"),
+    { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
   );
 
 // HMAC-SHA256 -> lowercase hex.
@@ -43,9 +50,9 @@ export async function hmacHex(secret: string, msg: string): Promise<string> {
 }
 
 export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  let diff = a.length ^ b.length;
+  const max = Math.max(a.length, b.length);
+  for (let i = 0; i < max; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
   return diff === 0;
 }
 
@@ -124,8 +131,4 @@ export async function publishHold(gateId: string, secret: string, hold: "on" | "
     JSON.stringify({ hold, ts, sig }),
     true,
   );
-}
-
-export function requiredSetting(name: string): string {
-  return requiredEnv(name);
 }

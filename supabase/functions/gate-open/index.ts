@@ -1,7 +1,6 @@
 // RJL — authenticated open. The browser NEVER holds the HMAC secret or broker creds.
 // Deploy: supabase functions deploy gate-open
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { admin, cors, getGateSecret, json, publishOpen } from "../_shared/util.ts";
+import { admin, cors, getGateSecret, json, publishOpen, userClient } from "../_shared/util.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -10,12 +9,7 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json({ error: "unauthorized" }, 401);
 
-  const userClient = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
-  );
-  const { data: { user }, error: authError } = await userClient.auth.getUser();
+  const { data: { user }, error: authError } = await userClient(authHeader).auth.getUser();
   if (authError || !user) return json({ error: "unauthorized" }, 401);
 
   let gateId = "";

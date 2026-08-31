@@ -6,7 +6,7 @@ import {
   getGateSecret,
   json,
   publishHold,
-  requiredSetting,
+  requiredEnv,
   timingSafeEqual,
   updateGateServiceStatus,
 } from "../_shared/util.ts";
@@ -25,7 +25,7 @@ function maybeString(value: unknown): string | null {
 }
 
 async function verifyStripeSignature(body: string, signatureHeader: string): Promise<boolean> {
-  const secret = requiredSetting("STRIPE_WEBHOOK_SECRET");
+  const secret = requiredEnv("STRIPE_WEBHOOK_SECRET");
   const parts = signatureHeader.split(",").map((part) => part.trim());
   const timestamp = parts.find((part) => part.startsWith("t="))?.slice(2);
   const signatures = parts.filter((part) => part.startsWith("v1=")).map((part) => part.slice(3));
