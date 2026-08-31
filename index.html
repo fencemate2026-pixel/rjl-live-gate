@@ -271,7 +271,7 @@
   <div class="modal" id="loginModal"><div class="modal-card"><h3>Operator sign-in</h3><input class="field" id="email" type="email" placeholder="Email" /><input class="field" id="opPassword" type="password" placeholder="Password" /><div class="tiny" id="loginError"></div><div class="btn-row" style="grid-template-columns:1fr 1fr;"><button class="btn" id="loginCancel">Cancel</button><button class="btn primary" id="loginConfirm">Sign in</button></div></div></div>
 
   <script>
-    const SUPABASE_URL = window.RJL_SUPABASE_URL || '';
+    const SUPABASE_URL = window.RJL_SUPABASE_URL || 'https://aevsfrxqyvtuycufffxk.supabase.co';
     const SUPABASE_ANON = window.RJL_SUPABASE_ANON || '';
     const GATE_ID = 'demo-0001';
     const sb = SUPABASE_URL && SUPABASE_ANON ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
