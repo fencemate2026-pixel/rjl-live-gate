@@ -32,6 +32,7 @@ jobs:
             index.ts
             linked-project.json
             plan-select.html
+            phase1-proposal.html
             rjl_gate_anywhere.ino
             secrets.h.example
             setup.sql
